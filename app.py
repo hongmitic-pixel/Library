@@ -15,8 +15,8 @@ GOOGLE_SHEET_URL = "https://google.com"
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        # Làm sạch khoảng trắng tiêu đề cột
-        df.columns = df.columns.str.strip()
+        # 👉 SIÊU NÂNG CẤP: Tự động xóa sạch khoảng trắng thừa và ép toàn bộ tiêu đề cột về chữ thường hoàn toàn
+        df.columns = df.columns.astype(str).str.strip().str.lower()
         return df
     except Exception as e:
         st.error(f"Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây. Lỗi: {e}")
@@ -25,9 +25,9 @@ def load_data_from_sheets():
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
 df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh (Đã tối ưu hóa thuật toán bắt chuỗi thô)
+# Hàm bóc tách địa chỉ đa tầng thông minh (Bất chấp viết hoa viết thường)
 def get_city_from_address(address, df_city_list):
-    # 👉 Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Bất chấp viết hoa viết thường)
+    # Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Ưu tiên số 1)
     for city in df_city_list:
         city_str = str(city).strip()
         if city_str.lower() in address.lower():
@@ -41,7 +41,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v15")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v20")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -53,7 +53,6 @@ def get_city_from_address(address, df_city_list):
             ]
             for place in possible_places:
                 if place and any(df_city_list.str.lower() == place.lower()):
-                    # Tìm và trả về đúng định dạng chữ gốc trong file Excel của anh
                     for original_city in df_city_list:
                         if str(original_city).strip().lower() == place.lower():
                             return str(original_city).strip()
@@ -69,33 +68,30 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
         st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            # Tìm kiếm cột City linh hoạt bất kể viết hoa hay viết thường trong file Sheets
-            city_col = None
-            for col in df_cities.columns:
-                if col.strip().lower() == 'city':
-                    city_col = col
-                    break
             
-            if city_col is None:
-                st.error("Lỗi: File Google Sheets của anh không có cột nào tên là 'City'. Anh kiểm tra lại hàng tiêu đề 1 nhé.")
+            # 👉 ĐÃ SỬA: Vì tất cả tên cột đã được ép về chữ thường ở trên, nên cột chắc chắn tên là 'city'
+            city_col = 'city'
+            
+            if city_col not in df_cities.columns:
+                st.error(f"Lỗi: Không tìm thấy cột chứa tên Thành phố. Các cột hiện tại hệ thống đọc được là: {list(df_cities.columns)}")
             else:
                 city_name = get_city_from_address(user_address, df_cities[city_col])
                 
                 if city_name:
-                    match = df_cities[df_cities[city_col].str.strip().str.lower() == city_name.lower()]
+                    match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
                     
                     if not match.empty:
-                        # Trích xuất hàng dữ liệu đầu tiên tìm thấy
+                        # Trích xuất hàng dữ liệu đầu tiên
                         city_info = match.iloc[0]
                         
-                        # Bộ lọc thông minh tự tìm cột không phân biệt hoa thường hay khoảng trắng
+                        # Bộ lọc thông minh tự quét từ khóa trong tiêu đề đã viết thường
                         def get_column_value(keywords):
                             for col in df_cities.columns:
-                                if any(kw in col.lower() for kw in keywords):
+                                if any(kw in col for kw in keywords):
                                     return city_info[col]
                             return "N/A"
 
-                        building_code_val = get_column_value(['building', 'structure'])
+                        building_code_val = get_column_value(['building', 'structure', 'code'])
                         drainage_val = get_column_value(['drainage', 'civil', 'spec'])
                         lid_val = get_column_value(['low impact', 'lid', 'stormwater'])
                         permit_agency_val = get_column_value(['permit', 'agency', 'local'])
@@ -136,7 +132,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                                 data=bio,
                                 file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
                                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
+                            )
                         except FileNotFoundError:
                             st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
                         except Exception as e:
@@ -147,4 +143,3 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
-
