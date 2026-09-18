@@ -81,10 +81,10 @@ st.markdown("""
             box-shadow: 5px 5px 0px #000000;
         }
     </style>
-""", unsafe_allowe_html=True)
+""", unsafe_allow_html=True)
 
 # Hiển thị Logo BUILDBASE dày dặn đầu trang
-st.markdown('<div class="buildbase-logo">BUILDBASE</div>', unsafe_allowe_html=True)
+st.markdown('<div class="buildbase-logo">BUILDBASE</div>', unsafe_allow_html=True)
 
 # --- 🛠️ KẾT NỐI DỮ LIỆU GỐC ---
 GOOGLE_SHEET_URL = "https://google.com"
