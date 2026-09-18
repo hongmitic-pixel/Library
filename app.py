@@ -23,13 +23,15 @@ def load_data_from_sheets():
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
 df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh
+# Hàm bóc tách địa chỉ đa tầng thông minh (Đã cường hóa ép chữ thường tuyệt đối)
 def get_city_from_address(address, df_city_list):
-    # Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Bất chấp viết hoa viết thường)
+    # 👉 Cơ chế 1: Thuật toán quét chữ trực tiếp (Ép toàn bộ về chữ thường để bao sân 100% trường hợp viết hoa/thường)
+    cleaned_address = str(address).strip().lower()
     for city in df_city_list:
-        city_str = str(city).strip()
-        if city_str.lower() in address.lower():
-            return city_str
+        city_str = str(city).strip().lower()
+        if city_str and city_str in cleaned_address:
+            # Trả về đúng chữ nguyên bản trong file Excel/Sheets của anh
+            return str(city).strip()
 
     # Cơ chế 2: Vệ tinh định vị dự phòng
     try:
@@ -39,7 +41,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v35")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v40")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -59,7 +61,7 @@ def get_city_from_address(address, df_city_list):
     return None
 
 # Giao diện người dùng
-user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 70610 Camellia Court, Rancho Mirage, CA 92270")
+user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 1992 La Cuesta Drive, Santa Ana")
 
 if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     if df_cities is None:
@@ -67,7 +69,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
             
-            # 👉 THUẬT TOÁN ĐÃ NÂNG CẤP: Tự động mò cột Thành phố thông minh bất chấp viết hoa/thường/tiếng Việt
+            # Tự động tìm cột Thành phố thông minh bất kể viết hoa/thường/tiếng Việt
             city_col = None
             for col in df_cities.columns:
                 col_clean = str(col).strip().lower()
@@ -76,7 +78,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     break
             
             if city_col is None:
-                # Nếu quét từ khóa thất bại, hệ thống tự bốc luôn cột đầu tiên (Cột A) làm mặc định để bảo hiểm vĩnh viễn
+                # Nếu quét từ khóa thất bại, hệ thống tự bốc luôn cột đầu tiên (Cột A) làm mặc định
                 city_col = df_cities.columns[0]
                 
             # Tiến hành bóc tách địa chỉ dựa trên cột đã dò tìm được
@@ -86,7 +88,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
                 
                 if not match.empty:
-                    city_info = match.iloc[0]
+                    city_info = match.iloc[0] # Lấy chính xác hàng đầu tiên tìm thấy dưới dạng Series
                     
                     # Bộ lọc thông minh tự quét từ khóa trong tiêu đề
                     def get_column_value(keywords):
@@ -148,5 +150,3 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
-
-
