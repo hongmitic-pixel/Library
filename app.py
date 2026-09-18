@@ -40,7 +40,7 @@ backup_cities = [
     "Jurupa Valley", "Kerman", "King City", "Kingsburg", "La Cañada Flintridge", "La Habra", "La Habra Heights", 
     "La Mesa", "La Mirada", "La Palma", "La Puente", "La Quinta", "La Verne", "Lafayette", "Laguna Beach", 
     "Laguna Hills", "Laguna Niguel", "Laguna Woods", "Lake Elsinore", "Lake Forest", "Lakeport", "Lakewood", 
-    "Lancaster", "Larkspur", "Lathrop", "Lawndale", "Lemon Grove", "Lemoore", "Lincoln", "Lindsay", 
+    "Lancaster", "Larkspur", "Lathrop", "Lathrop", "Lawndale", "Lemon Grove", "Lemoore", "Lincoln", "Lindsay", 
     "Live Oak", "Livermore", "Livingston", "Lodi", "Loma Linda", "Lomita", "Lompoc", "Long Beach", 
     "Loomis", "Los Alamitos", "Los Altos", "Los Altos Hills", "Los Angeles", "Los Banos", "Los Gatos", 
     "Loyalton", "Lynwood", "Madera", "Malibu", "Mammoth Lakes", "Manhattan Beach", "Manteca", "Maricopa", 
@@ -77,8 +77,7 @@ backup_cities = [
     "Yountville", "Yreka", "Yuba City", "Yucaipa", "Yucca Valley"
 ]
 
-city_list = backup_cities
-
+@st.cache_data(ttl=60)
 def load_data_safe():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
@@ -87,16 +86,15 @@ def load_data_safe():
             return df, "Google Sheets (Live)"
     except Exception:
         pass
-
+    
     backup_df = pd.DataFrame({
         'city': backup_cities,
-        'original_name': backup_cities,
-        'building_code': [f"2025/2026 California Building Code (CBC) - {c} City Amendments & Structural Safety Framework." for c in backup_cities],
-        'drainage civil specs': [f"City of {c} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specifications." for c in backup_cities],
-        'low impact development': [f"{c} Municipal Stormwater Management Ordinance - Low Impact Development (LID) Retention Rules." for c in backup_cities],
+        'building_code': [f"2025/2026 California Building Code (CBC) - {c} City Amendments & Structural Framework." for c in backup_cities],
+        'drainage civil specs': [f"City of {c} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specs." for c in backup_cities],
+        'low impact development': [f"{c} Municipal Stormwater Management Ordinance - Low Impact Development (LID) Rules." for c in backup_cities],
         'local permit agency': [f"City of {c} Development Services / Structural & Civil Building Inspection Division." for c in backup_cities]
     })
-    return backup_df, "Hệ thống Dự phòng (Bộ nhớ Đám mây)"
+    return backup_df, "Hệ thống Dự phòng"
 
 df_cities, data_source = load_data_safe()
 def get_city_from_address(address, list_of_cities):
@@ -104,27 +102,15 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address:
             return str(city).strip()
-            
     try:
-        optimized_address = address
-        if "california" not in address.lower() and "ca" not in address.lower():
-            optimized_address += ", CA"
-        if "usa" not in address.lower():
-            optimized_address += ", USA"
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_internal_v105")
-        location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
+        geolocator = Nominatim(user_agent="ca_civil_sow_final_prod_v200")
+        location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
-            address_details = location.raw['address']
-            possible_places = [
-                address_details.get('city'), address_details.get('town'),
-                address_details.get('suburb'), address_details.get('village'),
-                address_details.get('municipality'), address_details.get('county')
-            ]
-            for place in possible_places:
-                if place:
-                    for city in list_of_cities:
-                        if str(city).strip().lower() == place.lower():
-                            return str(city).strip()
+            vals = location.raw['address'].values()
+            for val in vals:
+                for city in list_of_cities:
+                    if str(city).strip().lower() == str(val).strip().lower():
+                        return str(city).strip()
     except Exception:
         pass
     return None
@@ -132,77 +118,69 @@ def get_city_from_address(address, list_of_cities):
 user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 1992 La Cuesta Drive, Santa Ana")
 if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     if user_address:
-        with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            city_name = get_city_from_address(user_address, city_list)
+        with st.spinner("Hệ thống đang xử lý địa chỉ..."):
+            city_name = get_city_from_address(user_address, backup_cities)
             
             if city_name:
-                # 👉 ĐÃ SỬA: Tự động mò tên cột City bất kể viết hoa hay viết thường để chống lỗi KeyError
-                city_col_name = None
-                for col in df_cities.columns:
-                    if str(col).strip().lower() == 'city':
-                        city_col_name = col
+                row_data = None
+                for idx, row in df_cities.iterrows():
+                    for col in df_cities.columns:
+                        if str(row[col]).strip().lower() == city_name.lower():
+                            row_data = row
+                            break
+                    if row_data is not None:
                         break
                 
-                if city_col_name is None:
-                    city_col_name = df_cities.columns[0] # Bảo hiểm: lấy cột đầu tiên nếu không khớp
-                
-                match = df_cities[df_cities[city_col_name].astype(str).str.strip().str.lower() == city_name.lower()]
-                
-                if not match.empty:
-                    city_info = match.iloc[0]
-                    display_city = city_info['original_name'] if 'original_name' in df_cities.columns else city_name
-                    
-                    # Bộ lọc quét từ khóa thông minh để lấy đúng giá trị ô bất kể tiêu đề Sheets viết thế nào
-                    def get_column_value(keywords):
+                if row_data is None:
+                    building_code_val = f"2025/2026 California Building Code (CBC) - {city_name} City Amendments & Structural Safety Framework."
+                    drainage_val = f"City of {city_name} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specifications."
+                    lid_val = f"{city_name} Municipal Stormwater Management Ordinance - Low Impact Development (LID) Retention Rules."
+                    permit_agency_val = f"City of {city_name} Development Services / Structural & Civil Building Inspection Division."
+                else:
+                    def find_val(keywords):
                         for col in df_cities.columns:
                             if any(kw in str(col).lower() for kw in keywords):
-                                return city_info[col]
+                                return str(row_data[col])
                         return "N/A"
+                    building_code_val = find_val(['building', 'structure', 'code'])
+                    drainage_val = find_val(['drainage', 'civil', 'spec'])
+                    lid_val = find_val(['low impact', 'lid', 'stormwater'])
+                    permit_agency_val = find_val(['permit', 'agency', 'local'])
 
-                    building_code_val = get_column_value(['building', 'structure', 'code', 'xây dựng'])
-                    drainage_val = get_column_value(['drainage', 'civil', 'spec', 'thoát nước'])
-                    lid_val = get_column_value(['low impact', 'lid', 'stormwater', 'nước mưa'])
-                    permit_agency_val = get_column_value(['permit', 'agency', 'local', 'cấp phép'])
-                    
-                    st.success(f"🎯 Đã xác định được thành phố: **{display_city}**")
-                    st.caption(f"💾 Nguồn kết nối hiện tại: *{data_source}*")
+                st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
+                st.caption(f"💾 Nguồn kết nối hiện tại: *{data_source}*")
+                st.write("---")
+                st.markdown(f"### 🏠 1. Tiêu chuẩn Xây dựng (Building Codes)")
+                st.write(f"{building_code_val}")
+                st.markdown(f"### 💧 2. Hạ tầng & Thoát nước (Civil & Drainage)")
+                st.write(f"**Thông số thoát nước:** {drainage_val}")
+                st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
+                st.markdown(f"### 📋 3. Pháp lý Thẩm định")
+                st.write(f"{permit_agency_val}")
+                
+                try:
+                    doc = DocxTemplate("sow_template.docx")
+                    context = {
+                        'PROJECT_ADDRESS': user_address, 'CITY': city_name,
+                        'BUILDING_CODE': building_code_val, 'DRAINAGE_CIVIL_SPECS': drainage_val,
+                        'LOW_IMPACT_DEVELOPMENT': lid_val, 'LOCAL_PERMIT_AGENCY': permit_agency_val
+                    }
+                    doc.render(context)
+                    bio = io.BytesIO()
+                    doc.save(bio)
+                    bio.seek(0)
                     st.write("---")
-                    st.markdown(f"### 🏠 1. Tiêu chuẩn Xây dựng (Building Codes)")
-                    st.write(f"{building_code_val}")
-                    
-                    st.markdown(f"### 💧 2. Hạ tầng & Thoát nước (Civil & Drainage)")
-                    st.write(f"**Thông số thoát nước:** {drainage_val}")
-                    st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
-                    
-                    st.markdown(f"### 📋 3. Pháp lý Thẩm định")
-                    st.write(f"{permit_agency_val}")
-                    
-                    try:
-                        doc = DocxTemplate("sow_template.docx")
-                        context = {
-                            'PROJECT_ADDRESS': user_address, 'CITY': display_city,
-                            'BUILDING_CODE': building_code_val, 'DRAINAGE_CIVIL_SPECS': drainage_val,
-                            'LOW_IMPACT_DEVELOPMENT': lid_val, 'LOCAL_PERMIT_AGENCY': permit_agency_val
-                        }
-                        doc.render(context)
-                        bio = io.BytesIO()
-                        doc.save(bio)
-                        bio.seek(0)
-                        
-                        st.write("---")
-                        st.subheader("🚀 Tài liệu SOW đã sẵn sàng:")
-                        st.download_button(
-                            label="📥 Tải file SOW (.docx) về máy",
-                            data=bio,
-                            file_name=f"SOW_{display_city.replace(' ', '_')}.docx",
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
-                    except FileNotFoundError:
-                        st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
-                    except Exception as e:
-                        st.error(f"Lỗi khi khởi tạo file Word: {e}")
-                else:
-                    st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật.")
+                    st.subheader("🚀 Tài liệu SOW đã sẵn sàng:")
+                    st.download_button(
+                        label="📥 Tải file SOW (.docx) về máy",
+                        data=bio,
+                        file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                except FileNotFoundError:
+                    st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy tải file mẫu này lên kho lưu trữ nhé.")
+                except Exception as e:
+                    st.error(f"Lỗi khi khởi tạo file Word: {e}")
             else:
                 st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
