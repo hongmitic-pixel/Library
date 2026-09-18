@@ -8,14 +8,14 @@ st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="ce
 st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
-# --- 👉 ĐÃ ĐỒNG BỘ: ĐƯỜNG LINK TRỤC DỮ LIỆU THÔ CHUẨN XÁC TỪ TRANG XUẤT BẢN CSV CỦA ANH ---
+# --- ĐƯỜNG LINK TRỤC DỮ LIỆU THÔ CHUẨN XÁC TỪ TRANG XUẤT BẢN CSV CỦA ANH ---
 GOOGLE_SHEET_URL = "https://google.com"
 
 @st.cache_data(ttl=600)  # Tự động đồng bộ sau mỗi 10 phút nếu anh sửa file Sheets
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        # Làm sạch khoảng trắng tiêu đề cột và ép về chữ thường hoàn toàn để chống lỗi KeyError
+        # Làm sạch khoảng trắng tiêu đề cột và ép về chữ thường hoàn toàn
         df.columns = df.columns.astype(str).str.strip().str.lower()
         return df
     except Exception as e:
@@ -68,17 +68,13 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
         st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            
             city_col = 'city'
-            
             if city_col not in df_cities.columns:
-                st.error(f"Lỗi: Không tìm thấy cột chứa tên Thành phố. Các cột hệ thống đọc được là: {list(df_cities.columns)}")
+                st.error("Lỗi: Không tìm thấy cột chứa tên Thành phố. Anh hãy rà soát lại hàng tiêu đề số 1 trên Sheets.")
             else:
                 city_name = get_city_from_address(user_address, df_cities[city_col])
-                
                 if city_name:
                     match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
-                    
                     if not match.empty:
                         city_info = match.iloc[0]
                         
@@ -135,9 +131,10 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                             st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
                         except Exception as e:
                             st.error(f"Lỗi khi khởi tạo file Word: {e}")
+                    else:
+                        st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
                 else:
-                    st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
-            else:
-                st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
+                    st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
+
