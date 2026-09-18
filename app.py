@@ -176,7 +176,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_prod_v5")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_final_v50")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -185,6 +185,9 @@ def get_city_from_address(address, list_of_cities):
                     if str(city).strip().lower() == str(val).strip().lower(): return str(city).strip()
     except Exception: pass
     return None
+
+# 👉 ĐÃ CHUẨN HÓA: Ô nhập liệu duy nhất biến hình thành con nhộng kiêu sa, gõ chữ nhấn Enter tự chạy kết quả
+user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
 
 # 👉 ĐÃ HOÀN THIỆN: Dùng HTML thuần dựng thanh tìm kiếm hình con nhộng bo tròn 100% có sẵn kính lúp ẩn bên trong chuẩn đét giống ảnh mẫu
 st.markdown("""
@@ -195,41 +198,6 @@ st.markdown("""
         </div>
     </div>
 """, unsafe_allow_html=True)
-
-# Khung truyền dẫn dữ liệu an toàn để đưa vào file Word SOW của anh
-col_in, col_bt = st.columns([5, 1])
-with col_in:
-    user_address = st.text_input("Nhập địa chỉ dự án:", label_visibility="collapsed", placeholder="Nhập lại tên đường/thành phố để kích hoạt lệnh SEARCH...")
-with col_bt:
-    search_clicked = st.button("SEARCH")
-if search_clicked and user_address:
-    with st.spinner("Searching..."):
-        city_name = get_city_from_address(user_address, backup_cities)
-        
-        if city_name:
-            row_data = None
-            for idx, row in df_cities.iterrows():
-                for col in df_cities.columns:
-                    if str(row[col]).strip().lower() == city_name.lower():
-                        row_data = row
-                        break
-                if row_data is not None: break
-            
-            if row_data is None:
-                building_code_val = f"2025/2026 California Building Code (CBC) - {city_name} City Amendments & Structural Safety Framework."
-                drainage_val = f"City of {city_name} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specifications."
-                lid_val = f"{city_name} Municipal Stormwater Management Ordinance - Low Impact Development (LID) Retention Rules."
-                permit_agency_val = f"City of {city_name} Development Services / Structural & Civil Building Inspection Division."
-            else:
-                def find_val(keywords):
-                    for col in df_cities.columns:
-                        if any(kw in str(col).lower() for kw in keywords): return str(row_data[col])
-                    return "N/A"
-                building_code_val = find_val(['building', 'structure', 'code'])
-                drainage_val = find_val(['drainage', 'civil', 'spec'])
-                lid_val = find_val(['low impact', 'lid', 'stormwater'])
-                permit_agency_val = find_val(['permit', 'agency', 'local'])
-
             # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN ĐẸP MẮT THEO ẢNH MẪU CỦA ANH
             st.markdown(f"""
                 <div class="result-box">
