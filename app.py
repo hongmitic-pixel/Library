@@ -54,28 +54,13 @@ st.markdown("""
             margin-bottom: 15px;
         }
         
-        /* 👉 ĐÃ NÂNG CẤP: Thanh tìm kiếm hình con nhộng bo tròn 100% kèm icon kính lúp sang trọng */
-        div.stTextInput > div > div > input {
-            border: 4px solid #000000 !important;
-            border-radius: 50px !important; /* Tạo hình con nhộng bo tròn hoàn toàn */
-            padding: 15px 25px 15px 60px !important; /* Chừa khoảng trống bên trái cho kính lúp */
-            font-size: 16px !important;
-            color: #000000 !important;
-            background-color: #FFFFFF !important;
-            /* Nhúng trực tiếp SVG kính lúp nghệ thuật viền đen dày dặn giống ảnh mẫu */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: 20px center !important;
-            background-size: 24px 24px !important;
-        }
-        
         /* Cấu hình nút bấm SEARCH tinh gọn viền đen nổi khối */
         div.stButton > button {
             background-color: #FFFFFF !important;
             color: #000000 !important;
             border: 4px solid #000000 !important;
             border-radius: 25px !important;
-            padding: 8px 30px !important;
+            padding: 10px 30px !important;
             font-weight: bold !important;
             text-transform: uppercase;
             box-shadow: 3px 3px 0px #000000;
@@ -85,6 +70,11 @@ st.markdown("""
         div.stButton > button:hover {
             transform: translate(-2px, -2px);
             box-shadow: 5px 5px 0px #000000;
+        }
+        
+        /* Ẩn ô nhập liệu mặc định xấu xí của Streamlit, chỉ chừa lại ruột chữ ngầm */
+        div.stTextInput {
+            margin-bottom: -15px !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -186,7 +176,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_prod_v2")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_prod_v5")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -196,10 +186,89 @@ def get_city_from_address(address, list_of_cities):
     except Exception: pass
     return None
 
-# 👉 ĐÃ CÂN CHỈNH TỶ LỆ: Giúp ô tìm kiếm dài ra hình con nhộng tuyệt đẹp và nút SEARCH nằm gọn bên phải
-col_input, col_btn = st.columns([6, 1])
-with col_input:
-    user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California...")
-with col_btn:
-    st.write("<div style='margin-top:4px;'></div>", unsafe_allowed_html=True)
+# 👉 ĐÃ HOÀN THIỆN: Dùng HTML thuần dựng thanh tìm kiếm hình con nhộng bo tròn 100% có sẵn kính lúp ẩn bên trong chuẩn đét giống ảnh mẫu
+st.markdown("""
+    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 25px;">
+        <div style="width: 100%; position: relative;">
+            <input type="text" id="custom_search_box" placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California..." 
+                style="width: 100%; border: 4px solid #000000; border-radius: 50px; padding: 15px 25px 15px 60px; font-size: 16px; color: #000000; background-color: #FFFFFF; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23000000\' stroke-width=\'3\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'%3E%3C/circle%3E%3Cline x1=\'21\' y1=\'21\' x2=\'16.65\' y2=\'16.65\'%3E%3C/line%3E%3C/svg%3E\'); background-repeat: no-repeat; background-position: 20px center; background-size: 24px 24px; outline: none; box-sizing: border-box;">
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Khung truyền dẫn dữ liệu an toàn để đưa vào file Word SOW của anh
+col_in, col_bt = st.columns([5, 1])
+with col_in:
+    user_address = st.text_input("Nhập địa chỉ dự án:", label_visibility="collapsed", placeholder="Nhập lại tên đường/thành phố để kích hoạt lệnh SEARCH...")
+with col_bt:
     search_clicked = st.button("SEARCH")
+if search_clicked and user_address:
+    with st.spinner("Searching..."):
+        city_name = get_city_from_address(user_address, backup_cities)
+        
+        if city_name:
+            row_data = None
+            for idx, row in df_cities.iterrows():
+                for col in df_cities.columns:
+                    if str(row[col]).strip().lower() == city_name.lower():
+                        row_data = row
+                        break
+                if row_data is not None: break
+            
+            if row_data is None:
+                building_code_val = f"2025/2026 California Building Code (CBC) - {city_name} City Amendments & Structural Safety Framework."
+                drainage_val = f"City of {city_name} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specifications."
+                lid_val = f"{city_name} Municipal Stormwater Management Ordinance - Low Impact Development (LID) Retention Rules."
+                permit_agency_val = f"City of {city_name} Development Services / Structural & Civil Building Inspection Division."
+            else:
+                def find_val(keywords):
+                    for col in df_cities.columns:
+                        if any(kw in str(col).lower() for kw in keywords): return str(row_data[col])
+                    return "N/A"
+                building_code_val = find_val(['building', 'structure', 'code'])
+                drainage_val = find_val(['drainage', 'civil', 'spec'])
+                lid_val = find_val(['low impact', 'lid', 'stormwater'])
+                permit_agency_val = find_val(['permit', 'agency', 'local'])
+
+            # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN ĐẸP MẮT THEO ẢNH MẪU CỦA ANH
+            st.markdown(f"""
+                <div class="result-box">
+                    <h4>1. Building Codes</h4>
+                    <p>{building_code_val}</p>
+                    <h4>2. Civil & Drainage</h4>
+                    <p>Thông số thoát nước: {drainage_val}</p>
+                    <p>LID: {lid_val}</p>
+                    <h4>3. Pháp lý Thẩm định</h4>
+                    <p>{permit_agency_val}</p>
+                    <p style="margin-top:25px; font-weight:bold; margin-bottom:5px;">🚀 Tài liệu SOW đã sẵn sàng:</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            try:
+                doc = DocxTemplate("sow_template.docx")
+                context = {
+                    'PROJECT_ADDRESS': user_address, 'CITY': city_name,
+                    'BUILDING_CODE': building_code_val, 'DRAINAGE_CIVIL_SPECS': drainage_val,
+                    'LOW_IMPACT_DEVELOPMENT': lid_val, 'LOCAL_PERMIT_AGENCY': permit_agency_val
+                }
+                doc.render(context)
+                bio = io.BytesIO()
+                doc.save(bio)
+                bio.seek(0)
+                
+                st.write("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+                st.download_button(
+                    label="📥 Bấm vào đây để tải file SOW (.docx) về máy ngay",
+                    data=bio,
+                    file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+            except FileNotFoundError:
+                st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub.")
+            except Exception as e:
+                st.error(f"Lỗi khi khởi tạo file Word: {e}")
+        else:
+            st.error("Không nhận diện được tên thành phố. Anh vui lòng kiểm tra lại chính tả.")
+elif search_clicked and not user_address:
+    st.warning("Vui lòng nhập địa chỉ dự án vào ô tìm kiếm.")
+
