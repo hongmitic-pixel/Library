@@ -86,7 +86,7 @@ st.markdown("""
 # Hiển thị Logo BUILDBASE dày dặn đầu trang
 st.markdown('<div class="buildbase-logo">BUILDBASE</div>', unsafe_allowed_html=True)
 
-# --- 🛠️ KẾT NỐI DỮ LIỆU GỐC (GIỮ NGUYÊN 100% LUỒNG ĐÃ CHẠY RA KẾT QUẢ CỦA ANH) ---
+# --- 🛠️ KẾT NỐI DỮ LIỆU GỐC ---
 GOOGLE_SHEET_URL = "https://google.com"
 
 # Danh sách thành phố phần 1
@@ -127,9 +127,10 @@ backup_cities += [
     "Los Angeles", "Los Banos", "Los Gatos", "Loyalton", "Lynwood", "Madera", "Malibu", "Mammoth Lakes", 
     "Manhattan Beach", "Manteca", "Maricopa", "Marina", "Martinez", "Marysville", "Maywood", "McFarlin", 
     "Mendota", "Menlo Park", "Merced", "Mill Valley", "Millbrae", "Milpitas", "Mission Viejo", "Modesto", 
-    "Monrovia", "Montague", "Montclair", "Monte Sereno", "Montebello", "Monterey", "Monterey Park", "Moorpark", 
-    "Moraga", "Moreno Valley", "Morgan Hill", "Morro Bay", "Mount Shasta", "Mountain View", "Murrieta", "Napa", 
-    "National City", "Needles", "Nevada City", "Newark", "Newman", "Newport Beach", "Norco", "Norwalk", "Novato", 
+    "Monrovia", "Montague", "Montclair", "Montclair", "Montclair", "Montclair", "Montclair", "Montclair", 
+    "Monte Sereno", "Montebello", "Monterey", "Monterey Park", "Moorpark", "Moraga", "Moreno Valley", 
+    "Morgan Hill", "Morro Bay", "Mount Shasta", "Mountain View", "Murrieta", "Napa", "National City", 
+    "Needles", "Nevada City", "Newark", "Newman", "Newport Beach", "Norco", "Norwalk", "Novato", 
     "Oakdale", "Oakland", "Oakley", "Oceanside", "Ojai", "Ontario", "Orange", "Orange Cove", "Orland", "Oroville", 
     "Oxnard", "Pacific Grove", "Pacifica", "Palm Desert", "Palm Springs", "Palmdale", "Palo Alto", 
     "Palos Verdes Estates", "Paradise", "Paramount", "Parlier", "Pasadena", "Paso Robles", "Patterson", 
@@ -174,9 +175,6 @@ def load_data_safe():
     })
 
 df_cities = load_data_safe()
-### 🧱 PHẦN 2: Thuật toán Tra cứu Vệ tinh Giữ nguyên (Dán nối tiếp vào giữa file)
-
-```python
 def get_city_from_address(address, list_of_cities):
     cleaned_address = str(address).strip().lower()
     for city in list_of_cities:
@@ -193,7 +191,7 @@ def get_city_from_address(address, list_of_cities):
     return None
 
 # Bố trí hàng tìm kiếm (Ô nhập liệu và Nút Search nằm ngang mượt mà đúng mẫu)
-col_input, col_btn = st.columns([4, 1])
+col_input, col_btn = st.columns()
 with col_input:
     user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án (Ví dụ: 1992 La Cuesta Drive, Santa Ana)...")
 with col_btn:
