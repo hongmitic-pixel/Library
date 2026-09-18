@@ -8,10 +8,8 @@ st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="ce
 st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động (Bản Online)")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
-# --- KẾT NỐI ĐẾN FILE GOOGLE SHEETS THẬT CỦA ANH ---
-SPREADSHEET_ID = "1QABmqGXfch3JYCvqZrowiTL8nPAINQGTMnW_Vr_9mWM"
-# Sử dụng link xuất bản trực tiếp dạng trục chính công khai chống chặn trên Cloud hoàn hảo
-GOOGLE_SHEET_URL = f"https://google.com{SPREADSHEET_ID}/pub?output=csv"
+# --- 👉 ĐÃ ĐỒNG BỘ: ĐƯỜNG LINK TRỤC DỮ LIỆU CHUẨN XÁC TỪ TRANG XUẤT BẢN CỦA ANH ---
+GOOGLE_SHEET_URL = "https://google.com"
 
 @st.cache_data(ttl=600)  # Tự động đồng bộ và làm mới dữ liệu sau mỗi 10 phút nếu anh sửa file Sheets
 def load_data_from_sheets():
@@ -20,7 +18,7 @@ def load_data_from_sheets():
         df.columns = df.columns.str.strip()  # Làm sạch khoảng trắng tiêu đề
         return df
     except Exception as e:
-        st.error("Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây.")
+        st.error(f"Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây. Lỗi: {e}")
         return None
 
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
@@ -35,7 +33,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_v6")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_final_v10")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -51,6 +49,7 @@ def get_city_from_address(address, df_city_list):
     except Exception:
         pass
         
+    # Cơ chế dự phòng quét chuỗi chữ thô trực tiếp
     for city in df_city_list:
         if str(city).lower() in address.lower():
             return city
@@ -72,10 +71,17 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 if not match.empty:
                     city_info = match.iloc[0]
                     
-                    building_code_val = city_info['Building_Code']
-                    drainage_val = city_info['Drainage Civil Specs']
-                    lid_val = city_info['Low Impact Development']
-                    permit_agency_val = city_info['Local Permit Agency']
+                    # Gọi chính xác tên cột theo file Sheets thật của anh (chấp nhận cả khoảng trắng và dấu gạch dưới)
+                    def get_column_value(possible_names):
+                        for name in possible_names:
+                            if name in df_cities.columns:
+                                return city_info[name]
+                        return "N/A"
+
+                    building_code_val = get_column_value(['Building_Code', 'Building Code'])
+                    drainage_val = get_column_value(['Drainage Civil Specs', 'Drainage_Civil_Specs', 'Drainage civil specs'])
+                    lid_val = get_column_value(['Low Impact Development', 'Low_Impact_Development', 'Low impact development'])
+                    permit_agency_val = get_column_value(['Local Permit Agency', 'Local_Permit_Agency', 'Local permit agency'])
                     
                     st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
                     st.write("---")
@@ -87,7 +93,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
                     
                     st.markdown(f"### 📋 3. Pháp lý Thẩm định")
-                    st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
+                    st.write(f"{permit_agency_val}")
                     
                     # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
                     try:
@@ -121,6 +127,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 else:
                     st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
             else:
-                st.error("Không nhận diện được tên thành phố từ địa chỉ này.")
+                st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng nhập rõ số nhà, tên đường, bang CA.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
+
