@@ -11,8 +11,9 @@ st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil 
 # --- ĐƯỜNG LINK TRỤC DỮ LIỆU THÔ CHUẨN XÁC TỪ TRANG XUẤT BẢN CSV CỦA ANH ---
 GOOGLE_SHEET_URL = "https://google.com"
 
-# 👉 ĐÃ ĐỔI: Loại bỏ hoàn toàn @st.cache_data để ép hệ thống xóa bộ nhớ đệm cũ, đọc trực tiếp file Sheets
-def force_load_fresh_data():
+# Thiết lập tự động đồng bộ sau mỗi 60 giây (ttl=60) khi anh sửa file Sheets
+@st.cache_data(ttl=60)
+def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
         return df
@@ -20,17 +21,19 @@ def force_load_fresh_data():
         st.error(f"Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây. Lỗi: {e}")
         return None
 
-# Nạp dữ liệu mới tinh trực tiếp từ Google Sheets của anh
-df_cities = force_load_fresh_data()
+# Nạp dữ liệu bảng tính từ Google Sheets của anh
+df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh (Ép chuỗi chữ thường tuyệt đối)
+# Hàm bóc tách địa chỉ đa tầng thông minh (Ép chuỗi chữ thường tuyệt đối chống lệch pha dữ liệu)
 def get_city_from_address(address, df_city_list):
+    # Cơ chế 1: Thuật toán quét chữ trực tiếp (Bao sân 100% trường hợp user gõ có tên thành phố)
     cleaned_address = str(address).strip().lower()
     for city in df_city_list:
         city_str = str(city).strip().lower()
         if city_str and city_str in cleaned_address:
             return str(city).strip()
 
+    # Cơ chế 2: Vệ tinh định vị dự phòng (Nếu gõ địa chỉ hẻo lánh không kèm tên thành phố)
     try:
         optimized_address = address
         if "california" not in address.lower() and "ca" not in address.lower():
@@ -38,7 +41,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_force_refresh_v1")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_final_production")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -66,7 +69,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
             
-            # Tự động tìm cột Thành phố thông minh
+            # Tự động tìm cột Thành phố thông minh bất kể viết hoa/thường hay dính khoảng trắng ở tiêu đề Sheets
             city_col = None
             for col in df_cities.columns:
                 col_clean = str(col).strip().lower()
@@ -75,7 +78,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     break
             
             if city_col is None:
-                city_col = df_cities.columns[0]
+                city_col = df_cities.columns[0] # Bảo hiểm: Tự chọn cột đầu tiên nếu hàng 1 bị trống
                 
             city_name = get_city_from_address(user_address, df_cities[city_col])
             
@@ -83,9 +86,9 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
                 
                 if not match.empty:
-                    city_info = match.iloc[0]
+                    city_info = match.iloc[0] # Bóc trích chính xác dữ liệu hàng
                     
-                    # Bộ lọc thông minh tự quét từ khóa trong tiêu đề
+                    # Bộ lọc quét từ khóa thông minh để lấy đúng giá trị ô bất kể tên cột viết kiểu gì
                     def get_column_value(keywords):
                         for col in df_cities.columns:
                             col_lower = str(col).lower()
