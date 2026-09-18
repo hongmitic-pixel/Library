@@ -89,7 +89,7 @@ def load_data_safe():
         pass
 
     backup_df = pd.DataFrame({
-        'city': [c.lower() for c in backup_cities],
+        'city': backup_cities,
         'original_name': backup_cities,
         'building_code': [f"2025/2026 California Building Code (CBC) - {c} City Amendments & Structural Safety Framework." for c in backup_cities],
         'drainage civil specs': [f"City of {c} Public Works Design Manual / Engineering Standard Drainage Infrastructure Specifications." for c in backup_cities],
