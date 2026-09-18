@@ -7,7 +7,7 @@ import io
 # Cấu hình trang và ẩn các nút mặc định của Streamlit để giữ giao diện sạch sẽ
 st.set_page_config(page_title="BUILDBASE - SOW System", layout="centered", initial_sidebar_state="collapsed")
 
-# --- 🎨 ĐẬP TAN BỘ KHUNG STREAMLIT: CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE ---
+# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE (MÀU XANH MINT & KHỐI BO TRÒN VIỀN ĐEN NỔI) ---
 st.markdown("""
     <style>
         /* Đổi màu nền toàn bộ trang web sang màu xanh Mint */
@@ -53,6 +53,37 @@ st.markdown("""
             font-size: 15px;
             line-height: 1.6;
             margin-bottom: 15px;
+        }
+        
+        /* 👉 SỬA LỖI TẬN GỐC: Nhắm vào tất cả các lớp div bọc trung gian của Streamlit để đập tan viền đen mặc định */
+        .stTextInput, .stTextInput > div, .stTextInput > div > div, div[data-baseweb="input"] {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border-radius: 0px !important;
+        }
+        
+        /* 👉 THANH CON NHỘNG HOÀN MỸ: Dựng lại khung bo tròn 100% viền đen dày dặn trực tiếp trên lõi Input nhận dữ liệu */
+        div.stTextInput input {
+            border: 4px solid #000000 !important;
+            border-radius: 50px !important; /* Ép hình con nhộng phẳng lỳ vĩnh viễn */
+            padding: 15px 25px 15px 60px !important; /* Chừa khoảng trống chuẩn cho kính lúp */
+            font-size: 16px !important;
+            color: #000000 !important;
+            background-color: #FFFFFF !important;
+            /* Nhúng trực tiếp kính lúp vector đen dày dặn chuẩn đét theo ảnh mẫu */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 22px center !important;
+            background-size: 22px 22px !important;
+            box-shadow: none !important;
+        }
+        
+        /* Khóa trạng thái focus và khóa bảng gợi ý điền form của trình duyệt */
+        div.stTextInput input:focus {
+            border: 4px solid #000000 !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
         
         /* CƯỜNG HÓA NÚT TẢI FILE WORD ĐỂ HIỂN THỊ ĐẸP KHI NHÚNG VÀO TRONG BẢNG VIỀN ĐEN */
@@ -108,8 +139,7 @@ backup_cities = [
     "Jurupa Valley", "Kerman", "King City", "Kingsburg", "La Cañada Flintridge", "La Habra", "La Habra Heights", 
     "La Mesa", "La Mirada", "La Palma", "La Puente", "La Quinta", "La Verne", "Lafayette", "Laguna Beach", 
     "Laguna Hills", "Laguna Niguel", "Laguna Woods", "Lake Elsinore", "Lake Forest", "Lakeport", "Lakewood", 
-    "Lancaster", "Larkspur", "Larkspur", "Larkspur", "Larkspur", "Larkspur", "Larkspur", "Larkspur", 
-    "Lathrop", "Lawndale", "Lemon Grove", "Lemoore", "Lincoln", "Lindsay", 
+    "Lancaster", "Larkspur", "Lathrop", "Lawndale", "Lemon Grove", "Lemoore", "Lincoln", "Lindsay", 
     "Live Oak", "Livermore", "Livingston", "Lodi", "Loma Linda", "Lomita", "Lompoc", "Long Beach", 
     "Loomis", "Los Alamitos", "Los Altos", "Los Altos Hills", "Los Angeles", "Los Banos", "Los Gatos", 
     "Loyalton", "Lynwood", "Madera", "Malibu", "Mammoth Lakes", "Manhattan Beach", "Manteca", "Maricopa", 
@@ -168,7 +198,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_html_v1")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_final_v100")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -178,18 +208,8 @@ def get_city_from_address(address, list_of_cities):
     except Exception: pass
     return None
 
-# --- GIẢI PHÁP ĐỘC QUYỀN: DỰNG THANH KIẾM BẰNG HTML THUẦN (PHẲNG LỲ 100%, BIẾN MẤT HOÀN TOÀN 2 NGOẶC ĐEN) ---
-query_params = st.query_params
-user_address = query_params.get("q", "")
-
-st.markdown("""
-    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 25px;">
-        <form method="get" style="width: 100%; position: relative;">
-            <input type="text" name="q" value="{}" placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter..." 
-                style="width: 100%; border: 4px solid #000000; border-radius: 50px; padding: 15px 25px 15px 65px; font-size: 16px; color: #000000; background-color: #FFFFFF; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23000000\' stroke-width=\'3\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'%3E%3C/circle%3E%3Cline x1=\'21\' y1=\'21\' x2=\'16.65\' y2=\'16.65\'%3E%3C/line%3E%3C/svg%3E\'); background-repeat: no-repeat; background-position: 22px center; background-size: 24px 24px; outline: none; box-sizing: border-box; box-shadow: none;">
-        </form>
-    </div>
-""".format(user_address), unsafe_allow_html=True)
+# --- 📋 THANH TÌM KIẾM HÌNH CON NHỘNG PHẲNG LỲ TÍCH HỢP CHUẨN LUỒNG PYTHON ---
+user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", key="search_box_final", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
 if user_address:
     with st.spinner("Searching..."):
         city_name = get_city_from_address(user_address, backup_cities)
@@ -218,7 +238,7 @@ if user_address:
                 lid_val = find_val(['low impact', 'lid', 'stormwater'])
                 permit_agency_val = find_val(['permit', 'agency', 'local'])
 
-            # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐẲNG CẤP VÀ CHỨA NÚT TẢI NGAY TRONG LÕI BẢNG
+            # ĐÓNG KHUNG KẾT QUẢ BO TRÒN VIỀN ĐEN ĐẲNG CẤP VÀ CHỨA NÚT TẢI NGAY TRONG LÕI BẢNG
             st.markdown(f"""
                 <div class="result-box">
                     <h4>1. Building Codes</h4>
@@ -257,3 +277,4 @@ if user_address:
                 st.error(f"Lỗi khi khởi tạo file Word: {e}")
         else:
             st.error("Không nhận diện được tên thành phố. Anh vui lòng kiểm tra lại chính tả.")
+
