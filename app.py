@@ -1,0 +1,126 @@
+import streamlit as st
+from geopy.geocoders import Nominatim
+import pandas as pd
+from docxtpl import DocxTemplate
+import io
+
+st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="centered")
+st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động (Bản Online)")
+st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
+
+# --- KẾT NỐI ĐẾN FILE GOOGLE SHEETS THẬT CỦA ANH ---
+SPREADSHEET_ID = "1QABmqGXfch3JYCvqZrowiTL8nPAINQGTMnW_Vr_9mWM"
+# Sử dụng link xuất bản trực tiếp dạng trục chính công khai chống chặn trên Cloud hoàn hảo
+GOOGLE_SHEET_URL = f"https://google.com{SPREADSHEET_ID}/pub?output=csv"
+
+@st.cache_data(ttl=600)  # Tự động đồng bộ và làm mới dữ liệu sau mỗi 10 phút nếu anh sửa file Sheets
+def load_data_from_sheets():
+    try:
+        df = pd.read_csv(GOOGLE_SHEET_URL)
+        df.columns = df.columns.str.strip()  # Làm sạch khoảng trắng tiêu đề
+        return df
+    except Exception as e:
+        st.error("Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây.")
+        return None
+
+# Nạp dữ liệu bảng tính từ Google Sheets của anh
+df_cities = load_data_from_sheets()
+
+# Hàm bóc tách địa chỉ đa tầng thông minh phù hợp môi trường Cloud
+def get_city_from_address(address, df_city_list):
+    try:
+        optimized_address = address
+        if "california" not in address.lower() and "ca" not in address.lower():
+            optimized_address += ", CA"
+        if "usa" not in address.lower():
+            optimized_address += ", USA"
+            
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_v6")
+        location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
+        
+        if location and 'address' in location.raw:
+            address_details = location.raw['address']
+            possible_places = [
+                address_details.get('city'), address_details.get('town'),
+                address_details.get('suburb'), address_details.get('village'),
+                address_details.get('municipality'), address_details.get('county')
+            ]
+            for place in possible_places:
+                if place and any(df_city_list.str.lower() == place.lower()):
+                    return place
+    except Exception:
+        pass
+        
+    for city in df_city_list:
+        if str(city).lower() in address.lower():
+            return city
+    return None
+
+# Giao diện người dùng
+user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 1992 La Cuesta Drive, Santa Ana")
+
+if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
+    if df_cities is None:
+        st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
+    elif user_address:
+        with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
+            city_name = get_city_from_address(user_address, df_cities['City'])
+            
+            if city_name:
+                match = df_cities[df_cities['City'].str.lower() == city_name.lower()]
+                
+                if not match.empty:
+                    city_info = match.iloc[0]
+                    
+                    building_code_val = city_info['Building_Code']
+                    drainage_val = city_info['Drainage Civil Specs']
+                    lid_val = city_info['Low Impact Development']
+                    permit_agency_val = city_info['Local Permit Agency']
+                    
+                    st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
+                    st.write("---")
+                    st.markdown(f"### 🏠 1. Tiêu chuẩn Xây dựng (Building Codes)")
+                    st.write(f"{building_code_val}")
+                    
+                    st.markdown(f"### 💧 2. Hạ tầng & Thoát nước (Civil & Drainage)")
+                    st.write(f"**Thông số thoát nước:** {drainage_val}")
+                    st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
+                    
+                    st.markdown(f"### 📋 3. Pháp lý Thẩm định")
+                    st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
+                    
+                    # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
+                    try:
+                        doc = DocxTemplate("sow_template.docx")
+                        context = {
+                            'PROJECT_ADDRESS': user_address,
+                            'CITY': city_name,
+                            'BUILDING_CODE': building_code_val,
+                            'DRAINAGE_CIVIL_SPECS': drainage_val,
+                            'LOW_IMPACT_DEVELOPMENT': lid_val,
+                            'LOCAL_PERMIT_AGENCY': permit_agency_val
+                        }
+                        doc.render(context)
+                        
+                        bio = io.BytesIO()
+                        doc.save(bio)
+                        bio.seek(0)
+                        
+                        st.write("---")
+                        st.subheader("🚀 Tài liệu SOW đã sẵn sàng:")
+                        st.download_button(
+                            label="📥 Tải file SOW (.docx) về máy",
+                            data=bio,
+                            file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
+                    except FileNotFoundError:
+                        st.error("Không tìm thấy file mẫu 'sow_template.docx'. Anh hãy đảm bảo đã tải file mẫu này lên GitHub chung với file code nhé.")
+                    except Exception as e:
+                        st.error(f"Lỗi khi khởi tạo file Word: {e}")
+                else:
+                    st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
+            else:
+                st.error("Không nhận diện được tên thành phố từ địa chỉ này.")
+    else:
+        st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
