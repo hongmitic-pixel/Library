@@ -188,16 +188,6 @@ def get_city_from_address(address, list_of_cities):
 
 # 👉 ĐÃ CHUẨN HÓA: Ô nhập liệu duy nhất biến hình thành con nhộng kiêu sa, gõ chữ nhấn Enter tự chạy kết quả
 user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
-
-# 👉 ĐÃ HOÀN THIỆN: Dùng HTML thuần dựng thanh tìm kiếm hình con nhộng bo tròn 100% có sẵn kính lúp ẩn bên trong chuẩn đét giống ảnh mẫu
-st.markdown("""
-    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 25px;">
-        <div style="width: 100%; position: relative;">
-            <input type="text" id="custom_search_box" placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California..." 
-                style="width: 100%; border: 4px solid #000000; border-radius: 50px; padding: 15px 25px 15px 60px; font-size: 16px; color: #000000; background-color: #FFFFFF; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23000000\' stroke-width=\'3\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'%3E%3C/circle%3E%3Cline x1=\'21\' y1=\'21\' x2=\'16.65\' y2=\'16.65\'%3E%3C/line%3E%3C/svg%3E\'); background-repeat: no-repeat; background-position: 20px center; background-size: 24px 24px; outline: none; box-sizing: border-box;">
-        </div>
-    </div>
-""", unsafe_allow_html=True)
             # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN ĐẸP MẮT THEO ẢNH MẪU CỦA ANH
             st.markdown(f"""
                 <div class="result-box">
