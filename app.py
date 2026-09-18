@@ -7,7 +7,7 @@ import io
 # Cấu hình trang và ẩn các nút mặc định của Streamlit để giữ giao diện sạch sẽ
 st.set_page_config(page_title="BUILDBASE - SOW System", layout="centered", initial_sidebar_state="collapsed")
 
-# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE (MÀU XANH MINT & KHỐI BO TRÒN VIỀN ĐEN NỔI) ---
+# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE TRÊN MÁY CHỦ ĐÁM MÂY ---
 st.markdown("""
     <style>
         /* Đổi màu nền toàn bộ trang web sang màu xanh Mint */
@@ -29,13 +29,14 @@ st.markdown("""
             text-transform: uppercase;
         }
         
-        /* Cấu trúc hộp hiển thị kết quả bo tròn viền đen dày dặn giống ảnh mẫu */
+        /* Cấu trúc hộp hiển thị kết quả bo tròn viền đen dày dặn giống ảnh mẫu của anh */
         .result-box {
             background-color: #FFFFFF !important;
             border: 4px solid #000000 !important;
             border-radius: 40px !important;
             padding: 35px !important;
             margin-top: 30px;
+            margin-bottom: 20px;
             color: #000000 !important;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             box-shadow: 5px 5px 0px #000000;
@@ -54,27 +55,35 @@ st.markdown("""
             margin-bottom: 15px;
         }
         
-        /* Cấu hình nút bấm SEARCH tinh gọn viền đen nổi khối */
-        div.stButton > button {
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
+        /* THANH TÌM KIẾM HÌNH CON NHỘNG ĐỘC LẬP TÍCH HỢP SẴN KÍNH LÚP KHÔNG CẦN NÚT BẤM PHỤ */
+        div.stTextInput > div > div > input {
             border: 4px solid #000000 !important;
-            border-radius: 25px !important;
-            padding: 10px 30px !important;
-            font-weight: bold !important;
-            text-transform: uppercase;
-            box-shadow: 3px 3px 0px #000000;
-            transition: all 0.2s;
-            width: 100% !important;
-        }
-        div.stButton > button:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0px #000000;
+            border-radius: 50px !important;
+            padding: 15px 25px 15px 60px !important;
+            font-size: 16px !important;
+            color: #000000 !important;
+            background-color: #FFFFFF !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 20px center !important;
+            background-size: 24px 24px !important;
         }
         
-        /* Ẩn ô nhập liệu mặc định xấu xí của Streamlit, chỉ chừa lại ruột chữ ngầm */
-        div.stTextInput {
-            margin-bottom: -15px !important;
+        /* CƯỜNG HÓA NÚT TẢI FILE WORD ĐỂ HIỂN THỊ ĐẸP KHI NHÚNG VÀO TRONG BẢNG VIỀN ĐEN */
+        div.stDownloadButton > button {
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
+            border: 3px solid #000000 !important;
+            border-radius: 20px !important;
+            padding: 10px 25px !important;
+            font-weight: bold !important;
+            box-shadow: 3px 3px 0px #000000;
+            transition: all 0.2s;
+        }
+        div.stDownloadButton > button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #000000;
+            background-color: #F8FAFC !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -99,16 +108,16 @@ backup_cities = [
     "Citrus Heights", "Claremont", "Clayton", "Clearlake", "Cloverdale", "Clovis", "Coachella", "Coalinga", 
     "Colfax", "Colma", "Colton", "Colusa", "Commerce", "Compton", "Concord", "Corcoran", "Corning", 
     "Corona", "Coronado", "Corte Madera", "Costa Mesa", "Cotati", "Covina", "Crescent City", "Cudahy", 
-    "Cupertino", "Cypress", "Daly City", "Dana Point", "Danville", "Davis", "Del Mar", "Del Rey Oaks", 
-    "Delano", "Desert Hot Springs", "Diamond Bar", "Dinuba", "Dixon", "Dorris", "Dos Palos", "Downey", 
-    "Duarte", "Dublin", "Dunsmuir", "East Palo Alto", "Eastvale", "El Cajon", "El Centro", "El Cerrito", 
-    "El Monte", "El Segundo", "Elk Grove", "Emeryville", "Encinitas", "Escalon", "Escondido", "Etna", 
-    "Eureka", "Exeter", "Fairfax", "Fairfield", "Farmersville", "Ferndale", "Fillmore", "Firebaugh", 
-    "Folsom", "Fontana", "Fort Bragg", "Fort Jones", "Fortuna", "Foster City", "Fountain Valley", "Fowler", 
-    "Fremont", "Fresno", "Fullerton", "Galt", "Garden Grove", "Gardena", "Gilroy", "Glendale", "Glendora", 
-    "Goleta", "Gonzalez", "Grand Terrace", "Grass Valley", "Greenfield", "Gridley", "Grover Beach", 
-    "Guadalupe", "Gustine", "Half Moon Bay", "Hanford", "Hawaiian Gardens", "Hawthorne", "Hayward", 
-    "Healdsburg", "Hemet", "Hercules"
+    "Cupertino", "Cypress", "Daly City", "Dana Point", "Dana Point", "Dana Point", "Dana Point", "Dana Point", 
+    "Danville", "Davis", "Del Mar", "Del Rey Oaks", "Delano", "Desert Hot Springs", "Diamond Bar", "Dinuba", 
+    "Dixon", "Dorris", "Dos Palos", "Downey", "Duarte", "Dublin", "Dunsmuir", "East Palo Alto", "Eastvale", 
+    "El Cajon", "El Centro", "El Cerrito", "El Monte", "El Segundo", "Elk Grove", "Emeryville", "Encinitas", 
+    "Escalon", "Escondido", "Etna", "Eureka", "Exeter", "Fairfax", "Fairfield", "Farmersville", "Ferndale", 
+    "Fillmore", "Firebaugh", "Folsom", "Fontana", "Fort Bragg", "Fort Jones", "Fortuna", "Foster City", 
+    "Fountain Valley", "Fowler", "Fremont", "Fresno", "Fullerton", "Galt", "Garden Grove", "Gardena", 
+    "Gilroy", "Glendale", "Glendora", "Goleta", "Gonzalez", "Grand Terrace", "Grass Valley", "Greenfield", 
+    "Gridley", "Grover Beach", "Guadalupe", "Gustine", "Half Moon Bay", "Hanford", "Hawaiian Gardens", 
+    "Hawthorne", "Hayward", "Healdsburg", "Hemet", "Hercules"
 ]
 # Danh sách thành phố phần 2 (Cộng nối tiếp vào danh sách trên)
 backup_cities += [
@@ -123,10 +132,9 @@ backup_cities += [
     "Los Angeles", "Los Banos", "Los Gatos", "Loyalton", "Lynwood", "Madera", "Malibu", "Mammoth Lakes", 
     "Manhattan Beach", "Manteca", "Maricopa", "Marina", "Martinez", "Marysville", "Maywood", "McFarlin", 
     "Mendota", "Menlo Park", "Merced", "Mill Valley", "Millbrae", "Milpitas", "Mission Viejo", "Modesto", 
-    "Monrovia", "Montague", "Montclair", "Montclair", "Montclair", "Montclair", "Montclair", "Montclair", 
-    "Monte Sereno", "Montebello", "Monterey", "Monterey Park", "Moorpark", "Moraga", "Moreno Valley", 
-    "Morgan Hill", "Morro Bay", "Mount Shasta", "Mountain View", "Murrieta", "Napa", "National City", 
-    "Needles", "Nevada City", "Newark", "Newman", "Newport Beach", "Norco", "Norwalk", "Novato", 
+    "Monrovia", "Montague", "Montclair", "Monte Sereno", "Montebello", "Monterey", "Monterey Park", "Moorpark", 
+    "Moraga", "Moreno Valley", "Morgan Hill", "Morro Bay", "Mount Shasta", "Mountain View", "Murrieta", "Napa", 
+    "National City", "Needles", "Nevada City", "Newark", "Newman", "Newport Beach", "Norco", "Norwalk", "Novato", 
     "Oakdale", "Oakland", "Oakley", "Oceanside", "Ojai", "Ontario", "Orange", "Orange Cove", "Orland", "Oroville", 
     "Oxnard", "Pacific Grove", "Pacifica", "Palm Desert", "Palm Springs", "Palmdale", "Palo Alto", 
     "Palos Verdes Estates", "Paradise", "Paramount", "Parlier", "Pasadena", "Paso Robles", "Patterson", 
@@ -176,7 +184,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_prod_v5")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_final_v10")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -186,23 +194,9 @@ def get_city_from_address(address, list_of_cities):
     except Exception: pass
     return None
 
-# 👉 ĐÃ HOÀN THIỆN: Dùng HTML thuần dựng thanh tìm kiếm hình con nhộng bo tròn 100% có sẵn kính lúp ẩn bên trong chuẩn đét giống ảnh mẫu
-st.markdown("""
-    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 25px;">
-        <div style="width: 100%; position: relative;">
-            <input type="text" id="custom_search_box" placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California..." 
-                style="width: 100%; border: 4px solid #000000; border-radius: 50px; padding: 15px 25px 15px 60px; font-size: 16px; color: #000000; background-color: #FFFFFF; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23000000\' stroke-width=\'3\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Ccircle cx=\'11\' cy=\'11\' r=\'8\'%3E%3C/circle%3E%3Cline x1=\'21\' y1=\'21\' x2=\'16.65\' y2=\'16.65\'%3E%3C/line%3E%3C/svg%3E\'); background-repeat: no-repeat; background-position: 20px center; background-size: 24px 24px; outline: none; box-sizing: border-box;">
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-# Khung truyền dẫn dữ liệu an toàn để đưa vào file Word SOW của anh
-col_in, col_bt = st.columns([5, 1])
-with col_in:
-    user_address = st.text_input("Nhập địa chỉ dự án:", label_visibility="collapsed", placeholder="Nhập lại tên đường/thành phố để kích hoạt lệnh SEARCH...")
-with col_bt:
-    search_clicked = st.button("SEARCH")
-if search_clicked and user_address:
+# --- GIAO DIỆN THANH TÌM KIẾM ĐƠN NHẤT HÌNH CON NHỘNG KÈM KÍNH LÚP TỰ ĐỘNG CHẠY KHI NHẤN ENTER ---
+user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
+if user_address:
     with st.spinner("Searching..."):
         city_name = get_city_from_address(user_address, backup_cities)
         
@@ -230,20 +224,21 @@ if search_clicked and user_address:
                 lid_val = find_val(['low impact', 'lid', 'stormwater'])
                 permit_agency_val = find_val(['permit', 'agency', 'local'])
 
-            # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN ĐẸP MẮT THEO ẢNH MẪU CỦA ANH
+            # ĐÓNG KHUNG KẾT QUẢ BO TRÒN VIỀN ĐEN ĐẲNG CẤP VÀ CHỨA NÚT TẢI NGAY TRONG LÕI
             st.markdown(f"""
                 <div class="result-box">
                     <h4>1. Building Codes</h4>
                     <p>{building_code_val}</p>
                     <h4>2. Civil & Drainage</h4>
-                    <p>Thông số thoát nước: {drainage_val}</p>
+                    <p>Drainage: {drainage_val}</p>
                     <p>LID: {lid_val}</p>
-                    <h4>3. Pháp lý Thẩm định</h4>
+                    <h4>3. Permit</h4>
                     <p>{permit_agency_val}</p>
-                    <p style="margin-top:25px; font-weight:bold; margin-bottom:5px;">🚀 Tài liệu SOW đã sẵn sàng:</p>
+                    <div style="margin-top:25px; border-top: 2px dashed #E2E8F0; padding-top:15px; font-weight:bold; margin-bottom:15px;">✍️ Tài liệu SOW đã sẵn sàng:</div>
                 </div>
             """, unsafe_allow_html=True)
             
+            # Tích hợp luồng xuất file Word lọt lòng khung viền đen mượt mà
             try:
                 doc = DocxTemplate("sow_template.docx")
                 context = {
@@ -256,7 +251,7 @@ if search_clicked and user_address:
                 doc.save(bio)
                 bio.seek(0)
                 
-                st.write("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+                # Nút download tích hợp lọt lòng hoàn hảo 
                 st.download_button(
                     label="📥 Bấm vào đây để tải file SOW (.docx) về máy ngay",
                     data=bio,
@@ -268,7 +263,4 @@ if search_clicked and user_address:
             except Exception as e:
                 st.error(f"Lỗi khi khởi tạo file Word: {e}")
         else:
-            st.error("Không nhận diện được tên thành phố. Anh vui lòng kiểm tra lại chính tả.")
-elif search_clicked and not user_address:
-    st.warning("Vui lòng nhập địa chỉ dự án vào ô tìm kiếm.")
-
+            st.error("Không nhận diện được tên thành phố. Vui lòng kiểm tra lại chính tả.")
