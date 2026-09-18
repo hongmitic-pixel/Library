@@ -5,7 +5,7 @@ from docxtpl import DocxTemplate
 import io
 
 st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="centered")
-st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động (Bản Online)")
+st.title("🏗️ Hệ Thống Tra Cứu Tự Động")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
 # --- ĐƯỜNG LINK TRỤC DỮ LIỆU TRỰC TIẾP TỪ TRANG XUẤT BẢN CỦA ANH ---
