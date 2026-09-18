@@ -136,13 +136,23 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
             city_name = get_city_from_address(user_address, city_list)
             
             if city_name:
-                city_col_name = 'city'
+                # 👉 ĐÃ SỬA: Tự động mò tên cột City bất kể viết hoa hay viết thường để chống lỗi KeyError
+                city_col_name = None
+                for col in df_cities.columns:
+                    if str(col).strip().lower() == 'city':
+                        city_col_name = col
+                        break
+                
+                if city_col_name is None:
+                    city_col_name = df_cities.columns[0] # Bảo hiểm: lấy cột đầu tiên nếu không khớp
+                
                 match = df_cities[df_cities[city_col_name].astype(str).str.strip().str.lower() == city_name.lower()]
                 
                 if not match.empty:
-                    city_info = match.iloc
+                    city_info = match.iloc[0]
                     display_city = city_info['original_name'] if 'original_name' in df_cities.columns else city_name
                     
+                    # Bộ lọc quét từ khóa thông minh để lấy đúng giá trị ô bất kể tiêu đề Sheets viết thế nào
                     def get_column_value(keywords):
                         for col in df_cities.columns:
                             if any(kw in str(col).lower() for kw in keywords):
