@@ -174,8 +174,6 @@ def load_data_safe():
     })
 
 df_cities = load_data_safe()
----
-
 ### 🧱 PHẦN 2: Thuật toán Tra cứu Vệ tinh Giữ nguyên (Dán nối tiếp vào giữa file)
 
 ```python
