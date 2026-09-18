@@ -14,7 +14,7 @@ st.markdown("""
         .stApp {
             background-color: #C0F0E4 !important;
         }
-        /* Ẩn các thanh tiêu đề thừa của Streamlit */
+        /* Ẩn các thành phần thừa của Streamlit */
         header, footer, .stDeployButton {display: none !important;}
         
         /* Font chữ tiêu đề BUILDBASE nghệ thuật */
@@ -75,6 +75,7 @@ st.markdown("""
             text-transform: uppercase;
             box-shadow: 3px 3px 0px #000000;
             transition: all 0.2s;
+            width: 100% !important;
         }
         div.stButton > button:hover {
             transform: translate(-2px, -2px);
@@ -180,7 +181,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_v2026")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_prod_v2")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -191,7 +192,8 @@ def get_city_from_address(address, list_of_cities):
     return None
 
 # Bố trí hàng tìm kiếm (Ô nhập liệu và Nút Search nằm ngang mượt mà đúng mẫu)
-col_input, col_btn = st.columns()
+# Đã thiết lập mảng tỷ lệ [5, 1] rõ ràng để sửa triệt để lỗi sập luồng cũ
+col_input, col_btn = st.columns([5, 1])
 with col_input:
     user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án (Ví dụ: 1992 La Cuesta Drive, Santa Ana)...")
 with col_btn:
@@ -225,7 +227,7 @@ if search_clicked and user_address:
                 lid_val = find_val(['low impact', 'lid', 'stormwater'])
                 permit_agency_val = find_val(['permit', 'agency', 'local'])
 
-            # 👉 HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN 100% THEO ẢNH ĐỀ XUẤT CỦA ANH
+            # HIỂN THỊ HỘP KHUNG BO TRÒN VIỀN ĐEN ĐÚNG CHUẨN ĐẸP MẮT THEO ẢNH MẪU CỦA ANH
             st.markdown(f"""
                 <div class="result-box">
                     <h4>1. Building Codes</h4>
@@ -237,9 +239,8 @@ if search_clicked and user_address:
                     <p>{permit_agency_val}</p>
                     <p style="margin-top:25px; font-weight:bold; margin-bottom:5px;">🚀 Tài liệu SOW đã sẵn sàng:</p>
                 </div>
-            """, unsafe_allowed_html=True)
+            """, unsafe_allow_html=True)
             
-            # Tích hợp luồng xuất file Word Word mẫu (.docx)
             try:
                 doc = DocxTemplate("sow_template.docx")
                 context = {
@@ -254,7 +255,7 @@ if search_clicked and user_address:
                 
                 st.write("<div style='margin-top:12px;'></div>", unsafe_allowed_html=True)
                 st.download_button(
-                    label="📥 Bấm vào đây để tải file SOW (.docx) về máy",
+                    label="📥 Bấm vào đây để tải file SOW (.docx) về máy ngay",
                     data=bio,
                     file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
