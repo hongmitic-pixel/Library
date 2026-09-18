@@ -15,7 +15,8 @@ GOOGLE_SHEET_URL = "https://google.com"
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        df.columns = df.columns.str.strip().str.lower()
+        # Làm sạch khoảng trắng tiêu đề cột
+        df.columns = df.columns.str.strip()
         return df
     except Exception as e:
         st.error(f"Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây. Lỗi: {e}")
@@ -24,13 +25,14 @@ def load_data_from_sheets():
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
 df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh (Đã cường hóa quét chữ trực tiếp)
+# Hàm bóc tách địa chỉ đa tầng thông minh (Đã tối ưu hóa thuật toán bắt chuỗi thô)
 def get_city_from_address(address, df_city_list):
-    # 👉 Cơ chế 1: Thuật toán quét chữ trực tiếp (Ưu tiên số 1 - Luôn đúng nếu user gõ có tên thành phố)
+    # 👉 Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Bất chấp viết hoa viết thường)
     for city in df_city_list:
-        if str(city).strip().lower() in address.lower():
-            return str(city).strip()
-            
+        city_str = str(city).strip()
+        if city_str.lower() in address.lower():
+            return city_str
+
     # Cơ chế 2: Vệ tinh định vị dự phòng
     try:
         optimized_address = address
@@ -39,7 +41,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v12")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v15")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -51,7 +53,10 @@ def get_city_from_address(address, df_city_list):
             ]
             for place in possible_places:
                 if place and any(df_city_list.str.lower() == place.lower()):
-                    return place
+                    # Tìm và trả về đúng định dạng chữ gốc trong file Excel của anh
+                    for original_city in df_city_list:
+                        if str(original_city).strip().lower() == place.lower():
+                            return str(original_city).strip()
     except Exception:
         pass
     return None
@@ -64,71 +69,82 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
         st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            city_col_name = 'city' if 'city' in df_cities.columns else df_cities.columns[0]
-            city_name = get_city_from_address(user_address, df_cities[city_col_name])
+            # Tìm kiếm cột City linh hoạt bất kể viết hoa hay viết thường trong file Sheets
+            city_col = None
+            for col in df_cities.columns:
+                if col.strip().lower() == 'city':
+                    city_col = col
+                    break
             
-            if city_name:
-                match = df_cities[df_cities[city_col_name].str.lower() == city_name.lower()]
-                
-                if not match.empty:
-                    city_info = match.iloc[0]
-                    
-                    # Bộ lọc thông minh tự tìm cột không phân biệt hoa thường hay khoảng trắng
-                    def get_column_value(keywords):
-                        for col in df_cities.columns:
-                            if any(kw in col for kw in keywords):
-                                return city_info[col]
-                        return "N/A"
-
-                    building_code_val = get_column_value(['building', 'structure'])
-                    drainage_val = get_column_value(['drainage', 'civil', 'spec'])
-                    lid_val = get_column_value(['low impact', 'lid', 'stormwater'])
-                    permit_agency_val = get_column_value(['permit', 'agency', 'local'])
-                    
-                    st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
-                    st.write("---")
-                    st.markdown(f"### 🏠 1. Tiêu chuẩn Xây dựng (Building Codes)")
-                    st.write(f"{building_code_val}")
-                    
-                    st.markdown(f"### 💧 2. Hạ tầng & Thoát nước (Civil & Drainage)")
-                    st.write(f"**Thông số thoát nước:** {drainage_val}")
-                    st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
-                    
-                    st.markdown(f"### 📋 3. Pháp lý Thẩm định")
-                    st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
-                    
-                    # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
-                    try:
-                        doc = DocxTemplate("sow_template.docx")
-                        context = {
-                            'PROJECT_ADDRESS': user_address,
-                            'CITY': city_name,
-                            'BUILDING_CODE': building_code_val,
-                            'DRAINAGE_CIVIL_SPECS': drainage_val,
-                            'LOW_IMPACT_DEVELOPMENT': lid_val,
-                            'LOCAL_PERMIT_AGENCY': permit_agency_val
-                        }
-                        doc.render(context)
-                        
-                        bio = io.BytesIO()
-                        doc.save(bio)
-                        bio.seek(0)
-                        
-                        st.write("---")
-                        st.subheader("🚀 Tài liệu SOW đã sẵn sàng:")
-                        st.download_button(
-                            label="📥 Tải file SOW (.docx) về máy",
-                            data=bio,
-                            file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
-                    except FileNotFoundError:
-                        st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
-                    except Exception as e:
-                        st.error(f"Lỗi khi khởi tạo file Word: {e}")
-                else:
-                    st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
+            if city_col is None:
+                st.error("Lỗi: File Google Sheets của anh không có cột nào tên là 'City'. Anh kiểm tra lại hàng tiêu đề 1 nhé.")
             else:
-                st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng nhập rõ số nhà, tên đường, bang CA.")
+                city_name = get_city_from_address(user_address, df_cities[city_col])
+                
+                if city_name:
+                    match = df_cities[df_cities[city_col].str.strip().str.lower() == city_name.lower()]
+                    
+                    if not match.empty:
+                        # Trích xuất hàng dữ liệu đầu tiên tìm thấy
+                        city_info = match.iloc[0]
+                        
+                        # Bộ lọc thông minh tự tìm cột không phân biệt hoa thường hay khoảng trắng
+                        def get_column_value(keywords):
+                            for col in df_cities.columns:
+                                if any(kw in col.lower() for kw in keywords):
+                                    return city_info[col]
+                            return "N/A"
+
+                        building_code_val = get_column_value(['building', 'structure'])
+                        drainage_val = get_column_value(['drainage', 'civil', 'spec'])
+                        lid_val = get_column_value(['low impact', 'lid', 'stormwater'])
+                        permit_agency_val = get_column_value(['permit', 'agency', 'local'])
+                        
+                        st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
+                        st.write("---")
+                        st.markdown(f"### 🏠 1. Tiêu chuẩn Xây dựng (Building Codes)")
+                        st.write(f"{building_code_val}")
+                        
+                        st.markdown(f"### 💧 2. Hạ tầng & Thoát nước (Civil & Drainage)")
+                        st.write(f"**Thông số thoát nước:** {drainage_val}")
+                        st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
+                        
+                        st.markdown(f"### 📋 3. Pháp lý Thẩm định")
+                        st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
+                        
+                        # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
+                        try:
+                            doc = DocxTemplate("sow_template.docx")
+                            context = {
+                                'PROJECT_ADDRESS': user_address,
+                                'CITY': city_name,
+                                'BUILDING_CODE': building_code_val,
+                                'DRAINAGE_CIVIL_SPECS': drainage_val,
+                                'LOW_IMPACT_DEVELOPMENT': lid_val,
+                                'LOCAL_PERMIT_AGENCY': permit_agency_val
+                            }
+                            doc.render(context)
+                            
+                            bio = io.BytesIO()
+                            doc.save(bio)
+                            bio.seek(0)
+                            
+                            st.write("---")
+                            st.subheader("🚀 Tài liệu SOW đã sẵn sàng:")
+                            st.download_button(
+                                label="📥 Tải file SOW (.docx) về máy",
+                                data=bio,
+                                file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
+                                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
+                        except FileNotFoundError:
+                            st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
+                        except Exception as e:
+                            st.error(f"Lỗi khi khởi tạo file Word: {e}")
+                    else:
+                        st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
+                else:
+                    st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
+
