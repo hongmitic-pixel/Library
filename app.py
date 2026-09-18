@@ -8,14 +8,14 @@ st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="ce
 st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
-# --- ĐƯỜNG LINK TRỤC DỮ LIỆU TRỰC TIẾP TỪ TRANG XUẤT BẢN CỦA ANH ---
+# --- 👉 ĐÃ ĐỒNG BỘ: ĐƯỜNG LINK TRỤC DỮ LIỆU THÔ CHUẨN XÁC TỪ TRANG XUẤT BẢN CSV CỦA ANH ---
 GOOGLE_SHEET_URL = "https://google.com"
 
 @st.cache_data(ttl=600)  # Tự động đồng bộ sau mỗi 10 phút nếu anh sửa file Sheets
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        # 👉 SIÊU NÂNG CẤP: Tự động xóa sạch khoảng trắng thừa và ép toàn bộ tiêu đề cột về chữ thường hoàn toàn
+        # Làm sạch khoảng trắng tiêu đề cột và ép về chữ thường hoàn toàn để chống lỗi KeyError
         df.columns = df.columns.astype(str).str.strip().str.lower()
         return df
     except Exception as e:
@@ -25,9 +25,9 @@ def load_data_from_sheets():
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
 df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh (Bất chấp viết hoa viết thường)
+# Hàm bóc tách địa chỉ đa tầng thông minh (Tối ưu hóa thuật toán bắt chuỗi thô)
 def get_city_from_address(address, df_city_list):
-    # Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Ưu tiên số 1)
+    # Cơ chế 1: Thuật toán quét chữ trực tiếp thông minh (Bất chấp viết hoa viết thường)
     for city in df_city_list:
         city_str = str(city).strip()
         if city_str.lower() in address.lower():
@@ -41,7 +41,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v20")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v30")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -61,7 +61,7 @@ def get_city_from_address(address, df_city_list):
     return None
 
 # Giao diện người dùng
-user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 1992 La Cuesta Drive, Santa Ana")
+user_address = st.text_input("📍 Nhập địa chỉ dự án tại California:", placeholder="Ví dụ: 70610 Camellia Court, Rancho Mirage, CA 92270")
 
 if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     if df_cities is None:
@@ -69,11 +69,10 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
             
-            # 👉 ĐÃ SỬA: Vì tất cả tên cột đã được ép về chữ thường ở trên, nên cột chắc chắn tên là 'city'
             city_col = 'city'
             
             if city_col not in df_cities.columns:
-                st.error(f"Lỗi: Không tìm thấy cột chứa tên Thành phố. Các cột hiện tại hệ thống đọc được là: {list(df_cities.columns)}")
+                st.error(f"Lỗi: Không tìm thấy cột chứa tên Thành phố. Các cột hệ thống đọc được là: {list(df_cities.columns)}")
             else:
                 city_name = get_city_from_address(user_address, df_cities[city_col])
                 
@@ -81,7 +80,6 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
                     
                     if not match.empty:
-                        # Trích xuất hàng dữ liệu đầu tiên
                         city_info = match.iloc[0]
                         
                         # Bộ lọc thông minh tự quét từ khóa trong tiêu đề đã viết thường
@@ -106,7 +104,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                         st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
                         
                         st.markdown(f"### 📋 3. Pháp lý Thẩm định")
-                        st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
+                        st.write(f"{permit_agency_val}")
                         
                         # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
                         try:
@@ -137,9 +135,9 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                             st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
                         except Exception as e:
                             st.error(f"Lỗi khi khởi tạo file Word: {e}")
-                    else:
-                        st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
                 else:
-                    st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
+                    st.warning(f"Thành phố '{city_name}' hiện chưa được nạp dữ liệu kỹ thuật trên Google Sheets.")
+            else:
+                st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng kiểm tra lại chính tả tên thành phố.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
