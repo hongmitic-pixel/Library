@@ -5,7 +5,7 @@ from docxtpl import DocxTemplate
 import io
 
 st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="centered")
-st.title("🏗️ Hệ Thống Tra Cứu Tự Động")
+st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
 # --- ĐƯỜNG LINK TRỤC DỮ LIỆU TRỰC TIẾP TỪ TRANG XUẤT BẢN CỦA ANH ---
@@ -15,7 +15,6 @@ GOOGLE_SHEET_URL = "https://google.com"
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        # 👉 TỰ ĐỘNG SỬA LỖI: Làm sạch khoảng trắng và ép tất cả tên cột về chữ thường hoàn toàn
         df.columns = df.columns.str.strip().str.lower()
         return df
     except Exception as e:
@@ -25,8 +24,14 @@ def load_data_from_sheets():
 # Nạp dữ liệu bảng tính từ Google Sheets của anh
 df_cities = load_data_from_sheets()
 
-# Hàm bóc tách địa chỉ đa tầng thông minh phù hợp môi trường Cloud
+# Hàm bóc tách địa chỉ đa tầng thông minh (Đã cường hóa quét chữ trực tiếp)
 def get_city_from_address(address, df_city_list):
+    # 👉 Cơ chế 1: Thuật toán quét chữ trực tiếp (Ưu tiên số 1 - Luôn đúng nếu user gõ có tên thành phố)
+    for city in df_city_list:
+        if str(city).strip().lower() in address.lower():
+            return str(city).strip()
+            
+    # Cơ chế 2: Vệ tinh định vị dự phòng
     try:
         optimized_address = address
         if "california" not in address.lower() and "ca" not in address.lower():
@@ -34,7 +39,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final_v12")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -49,11 +54,6 @@ def get_city_from_address(address, df_city_list):
                     return place
     except Exception:
         pass
-        
-    # Cơ chế dự phòng quét chữ thô trực tiếp
-    for city in df_city_list:
-        if str(city).lower() in address.lower():
-            return city
     return None
 
 # Giao diện người dùng
@@ -64,9 +64,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
         st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            # 👉 ĐÃ SỬA: Gọi cột 'city' viết thường an toàn tuyệt đối theo chuẩn hóa ở trên
             city_col_name = 'city' if 'city' in df_cities.columns else df_cities.columns[0]
-            
             city_name = get_city_from_address(user_address, df_cities[city_col_name])
             
             if city_name:
@@ -134,5 +132,3 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng nhập rõ số nhà, tên đường, bang CA.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
-
-
