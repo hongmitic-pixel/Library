@@ -8,14 +8,15 @@ st.set_page_config(page_title="Hệ thống xuất SOW tự động", layout="ce
 st.title("🏗️ Hệ Thống Tra Cứu & Xuất SOW Tự Động (Bản Online)")
 st.write("Dành riêng cho dự án Xây dựng Dân dụng & Hạ tầng Civil tại California")
 
-# --- 👉 ĐÃ ĐỒNG BỘ: ĐƯỜNG LINK TRỤC DỮ LIỆU CHUẨN XÁC TỪ TRANG XUẤT BẢN CỦA ANH ---
+# --- ĐƯỜNG LINK TRỤC DỮ LIỆU TRỰC TIẾP TỪ TRANG XUẤT BẢN CỦA ANH ---
 GOOGLE_SHEET_URL = "https://google.com"
 
-@st.cache_data(ttl=600)  # Tự động đồng bộ và làm mới dữ liệu sau mỗi 10 phút nếu anh sửa file Sheets
+@st.cache_data(ttl=600)  # Tự động đồng bộ sau mỗi 10 phút nếu anh sửa file Sheets
 def load_data_from_sheets():
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-        df.columns = df.columns.str.strip()  # Làm sạch khoảng trắng tiêu đề
+        # 👉 TỰ ĐỘNG SỬA LỖI: Làm sạch khoảng trắng và ép tất cả tên cột về chữ thường hoàn toàn
+        df.columns = df.columns.str.strip().str.lower()
         return df
     except Exception as e:
         st.error(f"Không thể kết nối tới kho dữ liệu Google Sheets từ máy chủ đám mây. Lỗi: {e}")
@@ -33,7 +34,7 @@ def get_city_from_address(address, df_city_list):
         if "usa" not in address.lower():
             optimized_address += ", USA"
             
-        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_final_v10")
+        geolocator = Nominatim(user_agent="ca_civil_sow_generator_cloud_ultimate_final")
         location = geolocator.geocode(optimized_address, addressdetails=True, timeout=10)
         
         if location and 'address' in location.raw:
@@ -49,7 +50,7 @@ def get_city_from_address(address, df_city_list):
     except Exception:
         pass
         
-    # Cơ chế dự phòng quét chuỗi chữ thô trực tiếp
+    # Cơ chế dự phòng quét chữ thô trực tiếp
     for city in df_city_list:
         if str(city).lower() in address.lower():
             return city
@@ -63,25 +64,28 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
         st.error("Lỗi: Hệ thống đám mây chưa kết nối được dữ liệu nguồn Google Sheets.")
     elif user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            city_name = get_city_from_address(user_address, df_cities['City'])
+            # 👉 ĐÃ SỬA: Gọi cột 'city' viết thường an toàn tuyệt đối theo chuẩn hóa ở trên
+            city_col_name = 'city' if 'city' in df_cities.columns else df_cities.columns[0]
+            
+            city_name = get_city_from_address(user_address, df_cities[city_col_name])
             
             if city_name:
-                match = df_cities[df_cities['City'].str.lower() == city_name.lower()]
+                match = df_cities[df_cities[city_col_name].str.lower() == city_name.lower()]
                 
                 if not match.empty:
                     city_info = match.iloc[0]
                     
-                    # Gọi chính xác tên cột theo file Sheets thật của anh (chấp nhận cả khoảng trắng và dấu gạch dưới)
-                    def get_column_value(possible_names):
-                        for name in possible_names:
-                            if name in df_cities.columns:
-                                return city_info[name]
+                    # Bộ lọc thông minh tự tìm cột không phân biệt hoa thường hay khoảng trắng
+                    def get_column_value(keywords):
+                        for col in df_cities.columns:
+                            if any(kw in col for kw in keywords):
+                                return city_info[col]
                         return "N/A"
 
-                    building_code_val = get_column_value(['Building_Code', 'Building Code'])
-                    drainage_val = get_column_value(['Drainage Civil Specs', 'Drainage_Civil_Specs', 'Drainage civil specs'])
-                    lid_val = get_column_value(['Low Impact Development', 'Low_Impact_Development', 'Low impact development'])
-                    permit_agency_val = get_column_value(['Local Permit Agency', 'Local_Permit_Agency', 'Local permit agency'])
+                    building_code_val = get_column_value(['building', 'structure'])
+                    drainage_val = get_column_value(['drainage', 'civil', 'spec'])
+                    lid_val = get_column_value(['low impact', 'lid', 'stormwater'])
+                    permit_agency_val = get_column_value(['permit', 'agency', 'local'])
                     
                     st.success(f"🎯 Đã xác định được thành phố: **{city_name}**")
                     st.write("---")
@@ -93,7 +97,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                     st.write(f"**Quản lý nước mưa (LID):** {lid_val}")
                     
                     st.markdown(f"### 📋 3. Pháp lý Thẩm định")
-                    st.write(f"{permit_agency_val}")
+                    st.write(f"**Cơ quan cấp phép:** {permit_agency_val}")
                     
                     # --- XỬ LÝ ĐIỀN DATA VÀO FILE WORD SOW ---
                     try:
@@ -121,7 +125,7 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         )
                     except FileNotFoundError:
-                        st.error("Không tìm thấy file mẫu 'sow_template.docx'. Anh hãy đảm bảo đã tải file mẫu này lên GitHub chung với file code nhé.")
+                        st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub. Anh hãy đảm bảo đã tải file mẫu này lên kho lưu trữ nhé.")
                     except Exception as e:
                         st.error(f"Lỗi khi khởi tạo file Word: {e}")
                 else:
@@ -130,4 +134,5 @@ if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
                 st.error("Không nhận diện được tên thành phố từ địa chỉ này. Anh vui lòng nhập rõ số nhà, tên đường, bang CA.")
     else:
         st.warning("Vui lòng gõ địa chỉ dự án vào ô tìm kiếm.")
+
 
