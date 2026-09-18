@@ -7,7 +7,7 @@ import io
 # Cấu hình trang và ẩn các nút mặc định của Streamlit để giữ giao diện sạch sẽ
 st.set_page_config(page_title="BUILDBASE - SOW System", layout="centered", initial_sidebar_state="collapsed")
 
-# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE TRÊN MÁY CHỦ ĐÁM MÂY ---
+# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE (ÉP PHẲNG KHÔNG LỖI BIẾN DẠNG) ---
 st.markdown("""
     <style>
         /* Đổi màu nền toàn bộ trang web sang màu xanh Mint */
@@ -55,18 +55,31 @@ st.markdown("""
             margin-bottom: 15px;
         }
         
-        /* THANH TÌM KIẾM HÌNH CON NHỘNG ĐỘC LẬP TÍCH HỢP SẴN KÍNH LÚP KHÔNG CẦN NÚT BẤM PHỤ */
+        /* 👉 SIÊU NÂNG CẤP: Đập tan hoàn toàn bộ bo viền mặc định của Streamlit (Xóa sạch dấu ngoặc đơn ở 2 đầu) */
+        div.stTextInput > div {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        div.stTextInput > div > div {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ép ô nhập liệu hiển thị chuẩn hình con nhộng bo tròn 100% kèm kính lúp vĩnh viễn */
         div.stTextInput > div > div > input {
             border: 4px solid #000000 !important;
-            border-radius: 50px !important;
+            border-radius: 50px !important; /* Ép tròn hoàn toàn không bị dẹt */
             padding: 15px 25px 15px 60px !important;
             font-size: 16px !important;
             color: #000000 !important;
             background-color: #FFFFFF !important;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
             background-repeat: no-repeat !important;
-            background-position: 20px center !important;
-            background-size: 24px 24px !important;
+            background-position: 22px center !important;
+            background-size: 22px 24px !important;
+            box-shadow: none !important;
         }
         
         /* CƯỜNG HÓA NÚT TẢI FILE WORD ĐỂ HIỂN THỊ ĐẸP KHI NHÚNG VÀO TRONG BẢNG VIỀN ĐEN */
@@ -119,6 +132,7 @@ backup_cities = [
     "Gridley", "Grover Beach", "Guadalupe", "Gustine", "Half Moon Bay", "Hanford", "Hawaiian Gardens", 
     "Hawthorne", "Hayward", "Healdsburg", "Hemet", "Hercules"
 ]
+
 # Danh sách thành phố phần 2 (Cộng nối tiếp vào danh sách trên)
 backup_cities += [
     "Hermosa Beach", "Hesperia", "Hidden Hills", "Highland", "Hillsborough", "Hollister", "Holtville", "Hughson", 
