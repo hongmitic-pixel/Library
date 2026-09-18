@@ -135,11 +135,12 @@ user_address = st.text_input("📍 Nhập địa chỉ dự án tại California
 if st.button("🔍 Tra cứu & Chuẩn bị SOW"):
     if user_address:
         with st.spinner("Hệ thống đám mây đang bóc tách địa chỉ dự án..."):
-            city_col = 'city'
-            city_name = get_city_from_address(user_address, df_cities[city_col])
+            # 👉 ĐÃ SỬA: Khớp chính xác với biến 'city_list' được tạo ra từ kho dữ liệu độc lập ở Khối 1
+            city_name = get_city_from_address(user_address, city_list)
             
             if city_name:
-                match = df_cities[df_cities[city_col].astype(str).str.strip().str.lower() == city_name.lower()]
+                city_col_name = 'city'
+                match = df_cities[df_cities[city_col_name].astype(str).str.strip().str.lower() == city_name.lower()]
                 
                 if not match.empty:
                     city_info = match.iloc[0]
