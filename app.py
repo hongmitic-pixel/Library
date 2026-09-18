@@ -7,7 +7,7 @@ import io
 # Cấu hình trang và ẩn các nút mặc định của Streamlit để giữ giao diện sạch sẽ
 st.set_page_config(page_title="BUILDBASE - SOW System", layout="centered", initial_sidebar_state="collapsed")
 
-# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE TRÊN MÁY CHỦ ĐÁM MÂY ---
+# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE (XÓA BỎ TRIỆT ĐỂ HAI NGOẶC ĐEN) ---
 st.markdown("""
     <style>
         /* Đổi màu nền toàn bộ trang web sang màu xanh Mint */
@@ -55,37 +55,35 @@ st.markdown("""
             margin-bottom: 15px;
         }
         
-        /* 👉 ÉP PHẲNG TOÀN DIỆN: Xóa sạch sành sanh mọi đường viền/bo góc mặc định của Streamlit (Triệt tiêu hoàn toàn 2 dấu ngoặc đơn đen) */
-        div[data-baseweb="input"] {
+        /* 👉 SỬA LỖI TẬN GỐC: Nhắm vào tất cả các lớp div bọc trung gian của Streamlit để đập tan viền đen mặc định */
+        .stTextInput, .stTextInput > div, .stTextInput > div > div, div[data-baseweb="input"] {
             border: none !important;
             background-color: transparent !important;
             box-shadow: none !important;
-        }
-        .stTextInput > div {
-            border: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
-        }
-        .stTextInput > div > div {
-            border: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
+            border-radius: 0px !important;
         }
         
-        /* 👉 CƯỜNG HÓA Ô INPUT: Tự dựng lại khung con nhộng viền đen dày 4px độc lập + Kính lúp sắc nét */
+        /* 👉 ÉP BUỘC Ô INPUT: Tự dựng khung hình con nhộng bo tròn 100% với viền đen dày dặn, có sẵn kính lúp */
         div.stTextInput input {
             border: 4px solid #000000 !important;
-            border-radius: 50px !important;
+            border-radius: 50px !important; /* Tạo hình con nhộng tròn xoe phẳng lỳ */
             padding: 15px 25px 15px 60px !important;
             font-size: 16px !important;
             color: #000000 !important;
             background-color: #FFFFFF !important;
-            /* Nhúng trực tiếp kính lúp chuẩn màu đen sắc nét */
+            /* Nhúng trực tiếp icon kính lúp vector đen dày chuẩn UI nghệ thuật */
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
             background-repeat: no-repeat !important;
             background-position: 22px center !important;
             background-size: 22px 22px !important;
             box-shadow: none !important;
+        }
+        
+        /* Cấu hình trạng thái khi nhấp chuột vào ô tìm kiếm không bị hiện lại viền xanh của Streamlit */
+        div.stTextInput input:focus {
+            border: 4px solid #000000 !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
         
         /* CƯỜNG HÓA NÚT TẢI FILE WORD ĐỂ HIỂN THỊ ĐẸP KHI NHÚNG VÀO TRONG BẢNG VIỀN ĐEN */
@@ -138,8 +136,6 @@ backup_cities = [
     "Gridley", "Grover Beach", "Guadalupe", "Gustine", "Half Moon Bay", "Hanford", "Hawaiian Gardens", 
     "Hawthorne", "Hayward", "Healdsburg", "Hemet", "Hercules"
 ]
-
-
 # Danh sách thành phố phần 2 (Cộng nối tiếp vào danh sách trên)
 backup_cities += [
     "Hermosa Beach", "Hesperia", "Hidden Hills", "Highland", "Hillsborough", "Hollister", "Holtville", "Hughson", 
@@ -205,7 +201,7 @@ def get_city_from_address(address, list_of_cities):
     for city in list_of_cities:
         if str(city).strip().lower() in cleaned_address: return str(city).strip()
     try:
-        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_final_v10")
+        geolocator = Nominatim(user_agent="ca_civil_buildbase_ultimate_final_v50")
         location = geolocator.geocode(address + ", CA, USA", addressdetails=True, timeout=10)
         if location and 'address' in location.raw:
             vals = location.raw['address'].values()
@@ -215,7 +211,7 @@ def get_city_from_address(address, list_of_cities):
     except Exception: pass
     return None
 
-# --- GIAO DIỆN THANH TÌM KIẾM ĐƠN NHẤT HÌNH CON NHỘNG KÈM KÍNH LÚP TỰ ĐỘNG CHẠY KHI NHẤN ENTER ---
+# --- GIAO DIỆN THANH TÌM KIẾM ĐƠN NHẤT HÌNH CON NHỘNG PHẲNG LỲ ---
 user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
 if user_address:
     with st.spinner("Searching..."):
@@ -251,15 +247,14 @@ if user_address:
                     <h4>1. Building Codes</h4>
                     <p>{building_code_val}</p>
                     <h4>2. Civil & Drainage</h4>
-                    <p>Drainage: {drainage_val}</p>
+                    <p>Thông số thoát nước: {drainage_val}</p>
                     <p>LID: {lid_val}</p>
-                    <h4>3. Permit</h4>
+                    <h4>3. Pháp lý Thẩm định</h4>
                     <p>{permit_agency_val}</p>
                     <div style="margin-top:25px; border-top: 2px dashed #E2E8F0; padding-top:15px; font-weight:bold; margin-bottom:15px;">✍️ Tài liệu SOW đã sẵn sàng:</div>
                 </div>
             """, unsafe_allow_html=True)
             
-            # Tích hợp luồng xuất file Word lọt lòng khung viền đen mượt mà
             try:
                 doc = DocxTemplate("sow_template.docx")
                 context = {
@@ -284,4 +279,4 @@ if user_address:
             except Exception as e:
                 st.error(f"Lỗi khi khởi tạo file Word: {e}")
         else:
-            st.error("Không nhận diện được tên thành phố. Vui lòng kiểm tra lại chính tả.")
+            st.error("Không nhận diện được tên thành phố. Anh vui lòng kiểm tra lại chính tả.")
