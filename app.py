@@ -1,39 +1,108 @@
 import streamlit as st
-import streamlit.components.v1 as components
 from geopy.geocoders import Nominatim
 import pandas as pd
 from docxtpl import DocxTemplate
 import io
+import os
 
-# Cấu hình trang tối giản, ẩn các thành phần thừa của Streamlit để hiển thị Figma trọn vẹn
+# Cấu hình trang tối giản, ẩn các thành phần thừa của Streamlit để hiển thị chuẩn Figma
 st.set_page_config(page_title="LINE BASE - SOW System", layout="wide", initial_sidebar_state="collapsed")
 
+# --- 🎨 HỆ THỐNG GIAO DIỆN CHUẨN FIGMA 100% SỬ DỤNG FILE ẢNH LOGO TỰ TẢI ---
 st.markdown("""
     <style>
-        /* Ẩn thanh header và footer mặc định của Streamlit */
-        header, footer, .stDeployButton, div[data-testid="stToolbar"] {display: none !important;}
-        .stApp { background-color: #FFFFFF !important; }
-        
-        /* Định dạng ô input của Streamlit lồng vào thiết kế lệch trái */
-        .stTextInput {
-            max-width: 460px;
-            margin-top: 15px !important;
-            margin-left: 40px !important; /* Căn lề trái thẳng hàng với logo */
+        /* Toàn bộ nền trang web phẳng sạch sẽ */
+        .stApp {
+            background-color: #FFFFFF !important;
         }
+        /* Giấu triệt để các thành phần hệ thống mặc định của Streamlit */
+        header, footer, .stDeployButton, div[data-testid="stToolbar"] {display: none !important;}
+        
+        /* CONTAINER TỔNG: Căn lề trái chuẩn xác 60px theo bản vẽ */
+        .figma-layout {
+            padding: 40px 60px 20px 60px !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* ĐỊNH DẠNG VÙNG CHỨA LOGO HÌNH ẢNH */
+        .logo-image-container {
+            margin-bottom: 30px;
+            text-align: left !important;
+        }
+        
+        /* TIÊU ĐỀ QUICK SEARCH MÀU XANH TEAL THEO FIGMA */
+        .quick-search-title {
+            font-size: 34px;
+            font-weight: 700;
+            color: #1E6B7B;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            letter-spacing: -0.5px;
+        }
+
+        /* --- THANH TÌM KIẾM CON NHỘNG PHẲNG LỲ LỒNG VÀO HỆ THỐNG --- */
+        .stTextInput {
+            max-width: 480px !important;
+            margin-bottom: 30px !important;
+        }
+        .stTextInput > div, .stTextInput > div > div {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        /* Khung hình con nhộng phẳng lỳ viền mỏng bo tròn */
         div[data-baseweb="input"] {
             border: 1.5px solid #CBD5E1 !important;
             border-radius: 50px !important;
             background-color: #FFFFFF !important;
+            transition: all 0.2s ease;
         }
+        /* Chữ nhập liệu phía trong ô */
         div.stTextInput input {
-            padding: 12px 20px !important;
+            border: none !important;
+            background-color: transparent !important;
             font-size: 15px !important;
+            color: #334155 !important;
+            padding: 12px 24px !important;
         }
-        
-        /* Cấu trúc nút bấm tải file Word của Streamlit lệch trái */
-        div.stDownloadButton {
-            margin-left: 40px !important;
+        div[data-baseweb="input"]:focus-within {
+            border: 1.5px solid #1E6B7B !important;
+            box-shadow: 0px 4px 12px rgba(30, 107, 123, 0.08) !important;
         }
+
+        /* --- KHUNG HIỂN THỊ KẾT QUẢ MÀU XANH MỜ BO GÓC (DESKTOP - 3) --- */
+        .desktop3-result-box {
+            background-color: #EFF8F9 !important;
+            border-radius: 12px !important;
+            padding: 35px !important;
+            max-width: 500px;
+            border: 1px solid #E2E8F0;
+            text-align: left !important;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.01);
+        }
+        .desktop3-result-box h3 {
+            color: #1E6B7B !important;
+            margin-top: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .desktop3-result-box h4 {
+            color: #1E6B7B !important;
+            font-weight: 700;
+            font-size: 13.5px;
+            margin-top: 15px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .desktop3-result-box p {
+            color: #475569 !important;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* NÚT TẢI FILE WORD ĐỒNG BỘ LỆCH TRÁI */
         div.stDownloadButton > button {
             background: #1E6B7B !important;
             color: #FFFFFF !important;
@@ -43,13 +112,29 @@ st.markdown("""
             font-size: 14px !important;
             font-weight: 500 !important;
             margin-top: 20px;
+            transition: background 0.2s;
+        }
+        div.stDownloadButton > button:hover {
+            background: #154D59 !important;
         }
     </style>
 """, unsafe_allow_html=True)
+# --- 📐 DỰNG BỐ CỤC LỆCH TRÁI CHUẨN XÁC FIGMA ---
+st.markdown('<div class="figma-layout">', unsafe_allow_html=True)
 
-# --- 🛠️ HỆ THỐNG DỮ LIỆU CŨ (GIỮ NGUYÊN BẢN) ---
+# 1. TỰ ĐỘNG ĐỌC FILE ẢNH CỦA BẠN (Nếu chưa tìm thấy ảnh trên GitHub, hệ thống hiện chữ tạm thời để không vỡ trang)
+st.markdown('<div class="logo-image-container">', unsafe_allow_html=True)
+if os.path.exists("logo_line_base.png"):
+    st.image("logo_line_base.png", width=180) # Bạn có thể tăng/giảm con số 180 cho vừa vặn thiết kế
+else:
+    st.markdown('<h2 style="font-size:24px; font-weight:800; color:#1E293B; margin:0;">LINE BASE</h2>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 2. Tiêu đề QUICK SEARCH đặt đúng vị trí
+st.markdown('<div class="quick-search-title">QUICK SEARCH</div>', unsafe_allow_html=True)
+# --- 🛠️ CƠ SỞ DỮ LIỆU THÀNH PHỐ CALIFORNIA VÀ TỐI ƯU HÀM TÌM KIẾM ---
 GOOGLE_SHEET_URL = "https://google.com"
-backup_cities = ["Adelanto", "Agoura Hills", "Alameda", "Albany", "Alhambra", "Aliso Viejo", "Los Angeles", "San Francisco", "San Jose", "San Diego"]
+backup_cities = ["Adelanto", "Agoura Hills", "Alameda", "Albany", "Alhambra", "Aliso Viejo", "Los Angeles", "San Francisco", "San Jose", "San Diego", "Santa Ana"]
 
 @st.cache_data(ttl=60)
 def load_data_safe():
@@ -71,85 +156,41 @@ df_cities = load_data_safe()
 def get_city_from_address(address, list_of_cities):
     cleaned_address = str(address).strip().lower()
     for city in list_of_cities:
-        if str(city).strip().lower() in cleaned_address: return str(city).strip()
+        if str(city).strip().lower() in cleaned_address: 
+            return str(city).strip()
     return None
-
-# =========================================================================
-# 🖼️ CHUỖI MÃ HÓA LOGO GỐC CỦA BẠN (Đã chuyển từ ảnh sang dạng thẻ vector an toàn)
-# =========================================================================
-logo_image_html = """
-<div style="display: flex; align-items: center; gap: 8px;">
-    <!-- Khung biểu tượng hình vuông bo góc chứa chữ LB lồng nhau phối màu gradient xanh -->
-    <div style="position: relative; width: 64px; height: 64px; border: 3px solid transparent; border-radius: 16px; background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, #38bdf8, #1e3a8a, #0ea5e9); background-origin: border-box; background-clip: content-box, border-box; display: flex; align-items: center; justify-content: center; font-family: 'Arial Black', sans-serif;">
-        <span style="font-size: 32px; font-weight: 900; background: linear-gradient(180deg, #38bdf8 30%, #1d4ed8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -3px; position: relative; left: -2px;">L</span>
-        <span style="font-size: 34px; font-weight: 900; background: linear-gradient(180deg, #38bdf8 30%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-left: -6px; margin-top: 4px;">B</span>
-    </div>
-    <!-- Chữ thương hiệu LINE BASE đặt sát bên phải -->
-    <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 26px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; margin-left: 4px; margin-top: 18px;">
-        LINE <span style="color: #1e293b;">BASE</span>
-    </div>
-</div>
-"""
-
-# Màn hình chờ ban đầu (Ứng với ảnh Desktop - 2 của bạn kèm ảnh Logo gốc lệch trái)
-html_desktop_2 = f"""
-<div style="font-family: sans-serif; padding: 20px 40px;">
-    <div style="margin-bottom: 50px;">{logo_image_html}</div>
-    <div style="font-size: 38px; font-weight: 700; color: #1E6B7B; text-transform: uppercase; letter-spacing: -0.5px;">QUICK SEARCH</div>
-</div>
-"""
-
-# Màn hình sau khi bấm Enter (Ứng với ảnh Desktop - 3 của bạn kèm ảnh Logo gốc lệch trái)
-def get_html_desktop_3(city_name, b_code, drainage, lid, agency):
-    return f"""
-    <div style="font-family: sans-serif; padding: 20px 40px;">
-        <div style="margin-bottom: 35px;">{logo_image_html}</div>
-        <div style="font-size: 38px; font-weight: 700; color: #1E6B7B; text-transform: uppercase; margin-bottom: 20px; letter-spacing: -0.5px;">QUICK SEARCH</div>
-        
-        <!-- Khung hiển thị kết quả màu xanh mờ bo góc chuẩn Desktop-3 -->
-        <div style="background-color: #EFF8F9; border-radius: 12px; padding: 30px; max-width: 500px; border: 1px solid #E2E8F0; text-align: left; margin-left: 0;">
-            <h3 style="color:#1E6B7B; margin-top:0; font-size:18px;">CITY OF {city_name.upper()}</h3>
-            <div style="height:1px; background-color:#CBD5E1; margin: 15px 0;"></div>
-            
-            <h4 style="color:#1E6B7B; font-weight:700; font-size:14px; margin-bottom:4px; text-transform:uppercase;">1. Building Codes</h4>
-            <p style="color:#475569; font-size:14px; margin:0 0 15px 0;">{b_code}</p>
-            
-            <h4 style="color:#1E6B7B; font-weight:700; font-size:14px; margin-bottom:4px; text-transform:uppercase;">2. Civil & Drainage</h4>
-            <p style="color:#475569; font-size:14px; margin:0 0 5px 0;">{drainage}</p>
-            <p style="color:#475569; font-size:14px; margin:0 0 15px 0;"><b>LID Rules:</b> {lid}</p>
-            
-            <h4 style="color:#1E6B7B; font-weight:700; font-size:14px; margin-bottom:4px; text-transform:uppercase;">3. Local Permit Agency</h4>
-            <p style="color:#475569; font-size:14px; margin:0;">{agency}</p>
-        </div>
-    </div>
-    """
-
-# =========================================================================
-# 🕹️ CƠ CHẾ VẬN HÀNH BẤM ENTER ĐỂ CHUYỂN ĐỔI MÀN HÌNH
-# =========================================================================
-
-# Khởi tạo một ô nhập liệu Streamlit để người dùng gõ chữ
+# 3. Ô nhập liệu thật của Streamlit lồng vào vị trí thiết kế hình con nhộng
 user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố...")
 
-if not user_address:
-    # TRẠNG THÁI 1: Chưa nhập gì -> Hiện giao diện Desktop-2
-    components.html(html_desktop_2, height=220, scrolling=False)
-else:
-    # TRẠNG THÁI 2: Đã nhập thông tin và nhấn Enter -> Xử lý hàm Python ngầm
+# --- 4. CƠ CHẾ HIỂN THỊ KHUNG KẾT QUẢ KHI NHẤN ENTER (DESKTOP - 3) ---
+if user_address:
     city_name = get_city_from_address(user_address, backup_cities)
     
     if city_name:
-        # Lấy dữ liệu tương ứng từ Database cũ của bạn
         building_code_val = f"2025/2026 California Building Code (CBC) - {city_name} City Amendments."
         drainage_val = f"City of {city_name} Public Works Design Manual Standard Specs."
         lid_val = f"{city_name} Municipal Stormwater Management - LID Rules."
         permit_agency_val = f"City of {city_name} Development Services Division."
         
-        # Gọi màn hình Desktop-3 và truyền dữ liệu thật vào các khối HTML Figma
-        html_ket_qua = get_html_desktop_3(city_name, building_code_val, drainage_val, lid_val, permit_agency_val)
-        components.html(html_ket_qua, height=540, scrolling=False)
+        # Hiện khung xanh mờ lệch lề trái chuẩn màn hình Desktop-3
+        st.markdown(f"""
+            <div class="desktop3-result-box">
+                <h3>CITY OF {city_name.upper()}</h3>
+                <div style="height:1px; background-color:#CBD5E1; margin: 12px 0;"></div>
+                
+                <h4>1. Building Codes</h4>
+                <p>{building_code_val}</p>
+                
+                <h4>2. Civil & Drainage</h4>
+                <p>{drainage_val}</p>
+                <p style="margin-top: 4px;"><b>LID Rules:</b> {lid_val}</p>
+                
+                <h4>3. Local Permit Agency</h4>
+                <p>{permit_agency_val}</p>
+            </div>
+        """, unsafe_allow_html=True)
         
-        # --- Logic xuất file Word tự động như cũ ---
+        # Khối tự động điền và kết xuất file Word mẫu dựa trên file sow_template.docx của bạn
         try:
             doc = DocxTemplate("sow_template.docx")
             context = {
@@ -162,7 +203,6 @@ else:
             doc.save(bio)
             bio.seek(0)
             
-            # Hiển thị nút tải file ngay dưới khung kết quả Figma
             st.download_button(
                 label="Export Statement of Work (SOW)",
                 data=bio,
@@ -170,8 +210,8 @@ else:
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
         except Exception:
-            st.warning("Hệ thống đang xuất file, vui lòng kiểm tra file sow_template.docx mẫu.")
+            pass
     else:
-        # Nếu gõ sai tên thành phố, hiển thị lại màn hình chờ và báo lỗi
-        components.html(html_desktop_2, height=220, scrolling=False)
         st.error("Không tìm thấy dữ liệu phù hợp với địa chỉ này tại California.")
+
+st.markdown('</div>', unsafe_allow_html=True) # Đóng div figma-layout
