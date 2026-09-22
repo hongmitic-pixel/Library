@@ -1,181 +1,63 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from geopy.geocoders import Nominatim
 import pandas as pd
 from docxtpl import DocxTemplate
 import io
 
-# Cấu hình trang tối giản, loại bỏ hoàn toàn lề mặc định để dàn trang chuẩn Figma
-st.set_page_config(page_title="BUILDBASE - QUICK SEARCH", layout="wide", initial_sidebar_state="collapsed")
+# Cấu hình trang tối giản, ẩn các thành phần thừa của Streamlit để nhường chỗ cho Figma
+st.set_page_config(page_title="BUILDBASE - FIGMA 100%", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 🎨 HỆ THỐNG GIAO DIỆN CHUẨN FIGMA 100% (PIXEL-PERFECT) ---
 st.markdown("""
     <style>
-        /* Toàn bộ nền trang web phẳng sạch sẽ */
-        .stApp {
-            background-color: #FFFFFF !important;
-        }
-        /* Giấu triệt để các thành phần hệ thống của Streamlit */
+        /* Ẩn thanh header và footer mặc định của Streamlit */
         header, footer, .stDeployButton, div[data-testid="stToolbar"] {display: none !important;}
-        
-        /* --- HEADER CONTAINER --- */
-        .figma-header {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 20px 40px;
-            width: 100%;
-            background-color: #FFFFFF;
-        }
-        
-        /* Giả lập logo LINE BASE chữ đậm phối xanh chuẩn thiết kế */
-        .line-base-logo {
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-            color: #0F172A;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            letter-spacing: -0.5px;
-        }
-        .line-base-logo span {
-            color: #38BDF8; /* Màu xanh thương hiệu nhánh */
-        }
-
-        /* --- BODY CONTENT CONTAINER --- */
-        .figma-body {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px 120px 20px;
-            text-align: center;
-        }
-        
-        /* Tiêu đề QUICK SEARCH màu xanh loang Gradient nhẹ / Xanh Slate thanh lịch */
-        .quick-search-title {
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            font-size: 42px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: #1E6B7B; 
-            margin-bottom: 30px;
-            text-transform: uppercase;
-        }
-
-        /* --- THANH TÌM KIẾM HÌNH CON NHỘNG ĐÚNG KÍCH THƯỚC FIGMA --- */
-        .stTextInput, .stTextInput > div, .stTextInput > div > div, div[data-baseweb="input"] {
-            border: none !important;
-            background-color: transparent !important;
-            box-shadow: none !important;
-            border-radius: 0px !important;
-        }
-        
-        div.stTextInput input {
-            border: 1.5px solid #CBD5E1 !important;
-            border-radius: 50px !important; /* Bo cong tròn tuyệt đối hình con nhộng */
-            padding: 14px 25px 14px 60px !important;
-            font-size: 16px !important;
-            color: #334155 !important;
-            background-color: #FFFFFF !important;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04) !important;
-            transition: all 0.2s ease;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        div.stTextInput input:focus {
-            border: 1.5px solid #1E6B7B !important;
-            box-shadow: 0px 4px 16px rgba(30, 107, 123, 0.15) !important;
-            outline: none !important;
-        }
-        
-        /* Nhúng Icon kính lúp mảnh dẻ định dạng vector chuẩn chỉ */
-        div.stTextInput input {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: 24px center !important;
-            background-size: 18px 18px !important;
-        }
-
-        /* --- KHUNG HIỂN THỊ KẾT QUẢ BOX (DESKTOP - 3) --- */
-        .desktop3-result {
-            background-color: #F0F9FA !important; /* Màu xanh nhạt nhẹ dịu của khung Figma */
-            border-radius: 16px !important;
-            padding: 40px !important;
-            margin-top: 40px;
-            text-align: left;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.02);
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .desktop3-result h4 {
-            color: #1E6B7B !important;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .desktop3-result p {
-            color: #475569 !important;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 0px;
-        }
-
-        /* --- NÚT DOWNLOAD FILE WORD ĐỒNG BỘ MÀU --- */
-        div.stDownloadButton {
-            text-align: center;
-            margin-top: 25px;
-        }
-        div.stDownloadButton > button {
-            background: #1E6B7B !important;
-            color: #FFFFFF !important;
-            border: none !important;
-            border-radius: 8px !important;
-            padding: 12px 35px !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-            transition: all 0.2s ease;
-            box-shadow: 0px 4px 12px rgba(30, 107, 123, 0.2);
-        }
-        div.stDownloadButton > button:hover {
-            background: #154D59 !important;
-            transform: translateY(-1px);
-            box-shadow: 0px 6px 18px rgba(30, 107, 123, 0.3);
-        }
-
-        /* --- THANH ĐỔ CỰC GRADIENT CHÂN TRANG ĐÚNG BẢN VẼ --- */
-        .figma-footer-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 15px;
-            background: linear-gradient(90deg, #38BDF8 0%, #1E6B7B 100%);
-            z-index: 9999;
-        }
+        .stApp { background-color: #FFFFFF !important; }
     </style>
 """, unsafe_allow_html=True)
-# 1. Hiển thị Header và Logo LINE BASE góc trái (Màn hình Desktop - 2 / Desktop - 3)
-st.markdown("""
-    <div class="figma-header">
-        <div class="line-base-logo">
-            📊 LINE <span>BASE</span>
-        </div>
+
+# ==========================================
+# 📋 DÁN ĐOẠN CODE HTML/CSS BẠN CỦA FIGMA VÀO ĐÂY
+# ==========================================
+figma_html = <div style="width: 1440px; height: 1024px; position: relative; background: white; overflow: hidden">
+  <div style="width: 585.73px; height: 70px; left: 411.46px; top: 344.52px; position: absolute; background: white; border-radius: 70px; border: 2px #595656 solid"></div>
+  <div style="width: 40px; height: 40px; left: 921.06px; top: 360.41px; position: absolute; background: #ADADAD"></div>
+  <div style="width: 1441.82px; height: 68.41px; left: 0px; top: 0px; position: absolute; background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%)"></div>
+  <div style="width: 1441.82px; height: 35.16px; left: 1.53px; top: 988.84px; position: absolute; background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%)"></div>
+  <div style="width: 126.31px; height: 25px; left: 77.33px; top: 22.95px; position: absolute; background: white"></div>
+  <img style="width: 262px; height: 130px; left: 65.46px; top: 88.93px; position: absolute" src="https://placehold.co/262x130" />
+  <div style="width: 707.60px; height: 118.70px; left: 407.07px; top: 229.92px; position: absolute; color: #89EDF3; font-size: 80px; font-family: Onest; font-weight: 400; line-height: 120px; word-wrap: break-word; text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25)">QUICK SEARCH</div>
+</div>
+<div style="width: 25px; height: 25px; position: relative; background: rgba(0, 0, 0, 0)"></div>
+<div style="width: 1440px; height: 1024px; position: relative; background: white; overflow: hidden">
+  <div style="width: 585.73px; height: 70px; left: 411.46px; top: 344.52px; position: absolute; background: white; border-radius: 70px; border: 2px #595656 solid"></div>
+  <div style="width: 40px; height: 40px; left: 921.06px; top: 360.41px; position: absolute; background: #ADADAD"></div>
+  <div style="width: 1441.82px; height: 68.41px; left: 0px; top: 0px; position: absolute; background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%)"></div>
+  <div style="width: 1441.82px; height: 35.16px; left: 1.53px; top: 988.84px; position: absolute; background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%)"></div>
+  <div style="width: 126.31px; height: 25px; left: 77.33px; top: 22.95px; position: absolute; background: white"></div>
+  <img style="width: 262px; height: 130px; left: 65.46px; top: 88.93px; position: absolute" src="https://placehold.co/262x130" />
+  <div style="width: 707.60px; height: 118.70px; left: 407.07px; top: 229.92px; position: absolute; color: #89EDF3; font-size: 80px; font-family: Onest; font-weight: 400; line-height: 120px; word-wrap: break-word; text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25)">QUICK SEARCH</div>
+  <div style="width: 643.99px; height: 474.73px; left: 396.07px; top: 447.81px; position: absolute; background: #F3FFFE; border-radius: 30px"></div>
+</div>
+<!-- Thay thế toàn bộ phần này bằng code HTML/CSS bạn copy từ Plugin Figma ra -->
+<div style="width: 100%; display: flex; flex-direction: column; align-items: center; font-family: sans-serif;">
+    <div style="width: 100%; padding: 20px 40px; display: flex; justify-content: flex-start;">
+        <span style="font-weight: bold; font-size: 20px; color: #0F172A;">📊 LINE <span style="color: #38BDF8;">BASE</span></span>
     </div>
-""", unsafe_allow_html=True)
+    <div style="margin-top: 60px; font-size: 42px; font-weight: 700; color: #1E6B7B; letter-spacing: -0.02em;">QUICK SEARCH</div>
+</div>
+"""
+# Hiển thị giao diện chuẩn Figma lên Streamlit
+components.html(figma_html, height=250, scrolling=False)
 
-# Khởi tạo khung chứa nội dung căn giữa
-st.markdown('<div class="figma-body">', unsafe_allow_html=True)
 
-# 2. Tiêu đề QUICK SEARCH chuẩn phong cách tối giản
-st.markdown('<div class="quick-search-title">QUICK SEARCH</div>', unsafe_allow_html=True)
+# ==========================================
+# 🛠️ PHẦN XỬ LÝ SEARCH BOX & FILE WORD CỦA STREAMLIT
+# ==========================================
+# Giữ lại ô nhập liệu Streamlit nằm ngay dưới tiêu đề Figma để xử lý logic Python
+user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố...")
+
+# (Giữ nguyên phần xử lý dữ liệu và xuất file Word giống như các đoạn code trước của bạn ở đây...)
 # --- 🛠️ KẾT NỐI DỮ LIỆU ---
 GOOGLE_SHEET_URL = "https://google.com"
 backup_cities = [
