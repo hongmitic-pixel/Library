@@ -4,58 +4,64 @@ import pandas as pd
 from docxtpl import DocxTemplate
 import io
 
-# Cấu hình trang và ẩn các nút mặc định của Streamlit để giữ giao diện sạch sẽ
-st.set_page_config(page_title="BUILDBASE - SOW System", layout="centered", initial_sidebar_state="collapsed")
+# Cấu hình trang tối giản, loại bỏ hoàn toàn lề mặc định để dàn trang chuẩn Figma
+st.set_page_config(page_title="BUILDBASE - QUICK SEARCH", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 🎨 CẤU HÌNH GIAO DIỆN CHUẨN UI/UX BUILDBASE (MÀU XANH MINT & KHỐI BO TRÒN VIỀN ĐEN NỔI) ---
+# --- 🎨 HỆ THỐNG GIAO DIỆN CHUẨN FIGMA 100% (PIXEL-PERFECT) ---
 st.markdown("""
     <style>
-        /* Đổi màu nền toàn bộ trang web sang màu xanh Mint */
+        /* Toàn bộ nền trang web phẳng sạch sẽ */
         .stApp {
-            background-color: #C0F0E4 !important;
+            background-color: #FFFFFF !important;
         }
-        /* Ẩn các thành phần thừa của Streamlit */
-        header, footer, .stDeployButton {display: none !important;}
+        /* Giấu triệt để các thành phần hệ thống của Streamlit */
+        header, footer, .stDeployButton, div[data-testid="stToolbar"] {display: none !important;}
         
-        /* Font chữ tiêu đề BUILDBASE nghệ thuật */
-        .buildbase-logo {
-            font-family: 'Impact', 'Arial Black', sans-serif;
-            font-size: 72px;
-            letter-spacing: 2px;
-            color: #000000;
+        /* --- HEADER CONTAINER --- */
+        .figma-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 40px;
+            width: 100%;
+            background-color: #FFFFFF;
+        }
+        
+        /* Giả lập logo LINE BASE chữ đậm phối xanh chuẩn thiết kế */
+        .line-base-logo {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: -0.5px;
+        }
+        .line-base-logo span {
+            color: #38BDF8; /* Màu xanh thương hiệu nhánh */
+        }
+
+        /* --- BODY CONTENT CONTAINER --- */
+        .figma-body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px 120px 20px;
             text-align: center;
-            margin-top: 20px;
-            margin-bottom: 25px;
+        }
+        
+        /* Tiêu đề QUICK SEARCH màu xanh loang Gradient nhẹ / Xanh Slate thanh lịch */
+        .quick-search-title {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #1E6B7B; 
+            margin-bottom: 30px;
             text-transform: uppercase;
         }
-        
-        /* Cấu trúc hộp hiển thị kết quả bo tròn viền đen dày dặn giống ảnh mẫu của anh */
-        .result-box {
-            background-color: #FFFFFF !important;
-            border: 4px solid #000000 !important;
-            border-radius: 40px !important;
-            padding: 35px !important;
-            margin-top: 30px;
-            margin-bottom: 20px;
-            color: #000000 !important;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 5px 5px 0px #000000;
-        }
-        .result-box h4 {
-            color: #000000 !important;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-size: 18px;
-        }
-        .result-box p {
-            color: #333333 !important;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        
-        /* 👉 SỬA LỖI TẬN GỐC: Nhắm vào tất cả các lớp div bọc trung gian của Streamlit để đập tan viền đen mặc định */
+
+        /* --- THANH TÌM KIẾM HÌNH CON NHỘNG ĐÚNG KÍCH THƯỚC FIGMA --- */
         .stTextInput, .stTextInput > div, .stTextInput > div > div, div[data-baseweb="input"] {
             border: none !important;
             background-color: transparent !important;
@@ -63,54 +69,115 @@ st.markdown("""
             border-radius: 0px !important;
         }
         
-        /* 👉 THANH CON NHỘNG HOÀN MỸ: Dựng lại khung bo tròn 100% viền đen dày dặn trực tiếp trên lõi Input nhận dữ liệu */
         div.stTextInput input {
-            border: 4px solid #000000 !important;
-            border-radius: 50px !important; /* Ép hình con nhộng phẳng lỳ vĩnh viễn */
-            padding: 15px 25px 15px 60px !important; /* Chừa khoảng trống chuẩn cho kính lúp */
+            border: 1.5px solid #CBD5E1 !important;
+            border-radius: 50px !important; /* Bo cong tròn tuyệt đối hình con nhộng */
+            padding: 14px 25px 14px 60px !important;
             font-size: 16px !important;
-            color: #000000 !important;
+            color: #334155 !important;
             background-color: #FFFFFF !important;
-            /* Nhúng trực tiếp kính lúp vector đen dày dặn chuẩn đét theo ảnh mẫu */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: 22px center !important;
-            background-size: 22px 22px !important;
-            box-shadow: none !important;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04) !important;
+            transition: all 0.2s ease;
+            max-width: 600px;
+            margin: 0 auto;
         }
         
-        /* Khóa trạng thái focus và khóa bảng gợi ý điền form của trình duyệt */
         div.stTextInput input:focus {
-            border: 4px solid #000000 !important;
-            box-shadow: none !important;
+            border: 1.5px solid #1E6B7B !important;
+            box-shadow: 0px 4px 16px rgba(30, 107, 123, 0.15) !important;
             outline: none !important;
         }
         
-        /* CƯỜNG HÓA NÚT TẢI FILE WORD ĐỂ HIỂN THỊ ĐẸP KHI NHÚNG VÀO TRONG BẢNG VIỀN ĐEN */
+        /* Nhúng Icon kính lúp mảnh dẻ định dạng vector chuẩn chỉ */
+        div.stTextInput input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 24px center !important;
+            background-size: 18px 18px !important;
+        }
+
+        /* --- KHUNG HIỂN THỊ KẾT QUẢ BOX (DESKTOP - 3) --- */
+        .desktop3-result {
+            background-color: #F0F9FA !important; /* Màu xanh nhạt nhẹ dịu của khung Figma */
+            border-radius: 16px !important;
+            padding: 40px !important;
+            margin-top: 40px;
+            text-align: left;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.02);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .desktop3-result h4 {
+            color: #1E6B7B !important;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .desktop3-result p {
+            color: #475569 !important;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 0px;
+        }
+
+        /* --- NÚT DOWNLOAD FILE WORD ĐỒNG BỘ MÀU --- */
+        div.stDownloadButton {
+            text-align: center;
+            margin-top: 25px;
+        }
         div.stDownloadButton > button {
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
-            border: 3px solid #000000 !important;
-            border-radius: 20px !important;
-            padding: 10px 25px !important;
-            font-weight: bold !important;
-            box-shadow: 3px 3px 0px #000000;
-            transition: all 0.2s;
+            background: #1E6B7B !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 12px 35px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease;
+            box-shadow: 0px 4px 12px rgba(30, 107, 123, 0.2);
         }
         div.stDownloadButton > button:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0px #000000;
-            background-color: #F8FAFC !important;
+            background: #154D59 !important;
+            transform: translateY(-1px);
+            box-shadow: 0px 6px 18px rgba(30, 107, 123, 0.3);
+        }
+
+        /* --- THANH ĐỔ CỰC GRADIENT CHÂN TRANG ĐÚNG BẢN VẼ --- */
+        .figma-footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(90deg, #38BDF8 0%, #1E6B7B 100%);
+            z-index: 9999;
         }
     </style>
 """, unsafe_allow_html=True)
+# 1. Hiển thị Header và Logo LINE BASE góc trái (Màn hình Desktop - 2 / Desktop - 3)
+st.markdown("""
+    <div class="figma-header">
+        <div class="line-base-logo">
+            📊 LINE <span>BASE</span>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
-# Hiển thị Logo BUILDBASE dày dặn đầu trang
-st.markdown('<div class="buildbase-logo">BUILDBASE</div>', unsafe_allow_html=True)
+# Khởi tạo khung chứa nội dung căn giữa
+st.markdown('<div class="figma-body">', unsafe_allow_html=True)
 
-# --- 🛠️ KẾT NỐI DỮ LIỆU GỐC ---
+# 2. Tiêu đề QUICK SEARCH chuẩn phong cách tối giản
+st.markdown('<div class="quick-search-title">QUICK SEARCH</div>', unsafe_allow_html=True)
+# --- 🛠️ KẾT NỐI DỮ LIỆU ---
 GOOGLE_SHEET_URL = "https://google.com"
-# Danh sách toàn bộ thành phố California dự phòng chạy trực tiếp trong bộ nhớ
 backup_cities = [
     "Adelanto", "Agoura Hills", "Alameda", "Albany", "Alhambra", "Aliso Viejo", "Alturas", "Amador City", 
     "American Canyon", "Anaheim", "Anderson", "Angels Camp", "Antioch", "Apple Valley", "Arcadia", "Arcata", 
@@ -193,6 +260,7 @@ def load_data_safe():
     })
 
 df_cities = load_data_safe()
+
 def get_city_from_address(address, list_of_cities):
     cleaned_address = str(address).strip().lower()
     for city in list_of_cities:
@@ -207,11 +275,12 @@ def get_city_from_address(address, list_of_cities):
                     if str(city).strip().lower() == str(val).strip().lower(): return str(city).strip()
     except Exception: pass
     return None
+# --- 3. INPUT NHẬN DỮ LIỆU (ỨNG VỚI DESKTOP - 2) ---
+user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", key="search_box_final", placeholder="Nhập địa chỉ dự án hoặc tên thành phố...")
 
-# --- 📋 THANH TÌM KIẾM HÌNH CON NHỘNG PHẲNG LỲ TÍCH HỢP CHUẨN LUỒNG PYTHON ---
-user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", key="search_box_final", placeholder="Nhập địa chỉ dự án hoặc tên thành phố tại California và nhấn Enter...")
+# --- 4. HIỂN THỊ TRANG KẾT QUẢ KHI CÓ DỮ LIỆU TÌM KIẾM (ỨNG VỚI DESKTOP - 3) ---
 if user_address:
-    with st.spinner("Searching..."):
+    with st.spinner("Processing..."):
         city_name = get_city_from_address(user_address, backup_cities)
         
         if city_name:
@@ -238,17 +307,21 @@ if user_address:
                 lid_val = find_val(['low impact', 'lid', 'stormwater'])
                 permit_agency_val = find_val(['permit', 'agency', 'local'])
 
-            # ĐÓNG KHUNG KẾT QUẢ BO TRÒN VIỀN ĐEN ĐẲNG CẤP VÀ CHỨA NÚT TẢI NGAY TRONG LÕI BẢNG
+            # Dựng lại khung vuông bo góc nhạt mờ chứa nội dung hiển thị của Desktop-3
             st.markdown(f"""
-                <div class="result-box">
+                <div class="desktop3-result">
+                    <h3 style="color:#1E6B7B; margin-top:0; font-weight:700; font-family:sans-serif; font-size:20px;">CITY OF {city_name.upper()}</h3>
+                    <div style="height:1px; background-color:#CBD5E1; margin: 15px 0 20px 0;"></div>
+                    
                     <h4>1. Building Codes</h4>
                     <p>{building_code_val}</p>
+                    
                     <h4>2. Civil & Drainage</h4>
-                    <p>Thông số thoát nước: {drainage_val}</p>
-                    <p>LID: {lid_val}</p>
-                    <h4>3. Pháp lý Thẩm định</h4>
+                    <p>{drainage_val}</p>
+                    <p style="margin-top: 5px;"><b>LID Rules:</b> {lid_val}</p>
+                    
+                    <h4>3. Local Permit Agency</h4>
                     <p>{permit_agency_val}</p>
-                    <div style="margin-top:25px; border-top: 2px dashed #000000; padding-top:15px; font-weight:bold; margin-bottom:15px;">✍️ Tài liệu SOW đã sẵn sàng:</div>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -264,17 +337,23 @@ if user_address:
                 doc.save(bio)
                 bio.seek(0)
                 
-                # Nút download tích hợp lọt lòng hoàn hảo bên trong bảng viền đen dày
+                # Nút tải tài liệu Word được bo góc vuông nhỏ lịch lãm đặt l lọt lòng bên dưới
                 st.download_button(
-                    label="📥 Bấm vào đây để tải file SOW (.docx) về máy ngay",
+                    label="📥 Export Statement of Work (SOW)",
                     data=bio,
                     file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
             except FileNotFoundError:
-                st.error("Không tìm thấy file mẫu 'sow_template.docx' trên GitHub.")
+                st.error("Không tìm thấy file mẫu 'sow_template.docx' trên hệ thống.")
             except Exception as e:
-                st.error(f"Lỗi khi khởi tạo file Word: {e}")
+                st.error(f"Lỗi khởi tạo file Word: {e}")
         else:
-            st.error("Không nhận diện được tên thành phố. Anh vui lòng kiểm tra lại chính tả.")
+            st.error("Không tìm thấy dữ liệu phù hợp với địa chỉ này tại California.")
+
+st.markdown('</div>', unsafe_allow_html=True) # Đóng div figma-body
+
+# 5. Thanh viền màu chuyển sắc dưới đáy màn hình (Gradient Footer Bar) đúng Figma
+st.markdown('<div class="figma-footer-bar"></div>', unsafe_allow_html=True)
+
 
