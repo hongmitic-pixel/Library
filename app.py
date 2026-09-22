@@ -29,7 +29,7 @@ st.markdown("""
         /* CONTAINER TỔNG CHO GIAO DIỆN CHÍNH: Ép nằm chính giữa màn hình */
         .figma-center-layout {
             max-width: 600px !important;
-            margin: 80px auto 0 auto !important; /* Đẩy khoảng cách trên xuống để nhường chỗ cho logo trái */
+            margin: 40px auto 0 auto !important; /* Đã thu hẹp khoảng cách trống với logo bên trên */
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -141,18 +141,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 # =========================================================================
-# 🧭 1. ĐẶT FILE ẢNH LOGO GỐC BẠN TỰ TẢI LÊN Ở GÓC TRÁI MÀN HÌNH (FIX LỖI)
+# 🧭 1. ĐẶT FILE ẢNH LOGO GỐC BẠN TỰ TẢI LÊN Ở GÓC TRÁI MÀN HÌNH
 # =========================================================================
 st.markdown('<div class="logo-top-left">', unsafe_allow_html=True)
 if os.path.exists("logo_line_base.png"):
-    # Đọc trực tiếp file ảnh thật logo_line_base.png mà bạn đã tải lên GitHub thành công
     with open("logo_line_base.png", "rb") as f:
         st.image(f.read(), width=160)
 else:
-    # Nếu hệ thống xử lý chưa kịp nhận file, hiện chữ tạm để tránh sập ứng dụng
     st.markdown('<h2 style="font-size:20px; font-weight:800; color:#1E293B; margin:0;">LINE BASE</h2>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
-
 
 # =========================================================================
 # 📐 2. DỰNG LAYOUT CHÍNH CĂN GIỮA TUYỆT ĐỐI THEO FIGMA
@@ -191,7 +188,7 @@ def get_city_from_address(address, list_of_cities):
 # Ô nhập liệu thật của Streamlit hình con nhộng lồng ở giữa
 user_address = st.text_input("Tìm kiếm...", label_visibility="collapsed", placeholder="Nhập địa chỉ dự án hoặc tên thành phố...")
 
-# --- 3. CƠ CHẾ HIỂN THỊ KHUNG KẾT QUẢ KHI NHẤN ENTER (FIX LỖI CHỮ THÔ HTML) ---
+# --- 3. CƠ CHẾ HIỂN THỊ KHUNG KẾT QUẢ KHI NHẤN ENTER (ĐÃ RÀ SOÁT FIX HẾT LỖI) ---
 if user_address:
     city_name = get_city_from_address(user_address, backup_cities)
     
@@ -201,7 +198,7 @@ if user_address:
         lid_val = f"{city_name} Municipal Stormwater Management - LID Rules."
         permit_agency_val = f"City of {city_name} Development Services Division."
         
-        # SỬA LỖI TẬN GỐC: Sử dụng st.markdown thông dịch chuẩn xác các khối chữ
+        # Bật thuộc tính unsafe_allow_html=True để dịch chữ đồ họa đẹp đẽ, biến mất thẻ chữ thô
         st.markdown(f"""
             <div class="desktop3-result-box">
                 <h3>CITY OF {city_name.upper()}</h3>
@@ -219,7 +216,7 @@ if user_address:
             </div>
         """, unsafe_allow_html=True)
         
-        # Khối tự động điền dữ liệu và xuất file Word mẫu dựa trên file sow_template.docx của bạn
+        # Khối tự động điền dữ liệu và kết xuất file Word mẫu
         try:
             doc = DocxTemplate("sow_template.docx")
             context = {
@@ -232,17 +229,22 @@ if user_address:
             doc.save(bio)
             bio.seek(0)
             
-            # Khởi tạo nút download lọt lòng trung tâm dưới khung xanh kết quả
+            # Ép cấu trúc flexbox căn chính giữa nút bấm Export 
+            st.markdown('<div style="display: flex; justify-content: center; width: 100%;">', unsafe_allow_html=True)
             st.download_button(
                 label="Export Statement of Work (SOW)",
                 data=bio,
                 file_name=f"SOW_{city_name.replace(' ', '_')}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
+            st.markdown('</div>', unsafe_allow_html=True)
         except Exception:
             pass
     else:
+        # Ép cấu trúc căn chính giữa khối báo lỗi màu hồng
+        st.markdown('<div style="display: flex; justify-content: center; width: 100%;">', unsafe_allow_html=True)
         st.error("Không tìm thấy dữ liệu phù hợp với địa chỉ này tại California.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True) # Đóng div figma-center-layout
+st.markdown('</div>', unsafe_allow_html=True) # Đóng div figma-center-layout mở từ Đoạn 2
 
