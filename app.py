@@ -31,7 +31,7 @@ LOGO_FILE = "logo_line_base.png"
 # ------------------------------------------------------------
 # GOOGLE SHEET
 # ------------------------------------------------------------
-# Đã cập nhật đúng URL Google Sheet xuất bản dưới dạng CSV của bạn
+# URL Google Sheet xuất bản dưới dạng CSV chuẩn xác của bạn:
 
 GOOGLE_SHEET_URL = "https://google.com"
 
@@ -111,8 +111,6 @@ BACKUP_DATA = {
         "City of Santa Ana Development Services Division.",
     ]
 }
-
-
 # ============================================================
 # LOAD DATA
 # ============================================================
@@ -224,56 +222,6 @@ st.markdown(
     }
     </style>
     """,
-    unsafe_html=True
-)
-
-
-
-
-/* ==========================================================
-   GLOBAL
-   ========================================================== */
-
-html,
-body,
-[data-testid="stAppViewContainer"],
-[data-testid="stApp"] {
-    background: #FFFFFF !important;
-}
-
-[data-testid="stHeader"] {
-    display: none !important;
-}
-
-header {
-    display: none !important;
-}
-
-footer {
-    display: none !important;
-}
-
-[data-testid="stToolbar"] {
-    display: none !important;
-}
-
-#MainMenu {
-    display: none !important;
-
-
-/* ==========================================================
-   REMOVE DEFAULT STREAMLIT SPACING
-   ========================================================== */
-
-.block-container {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    max-width: none !important;
-}
-</style>
-""",
     unsafe_html=True
 )
 
