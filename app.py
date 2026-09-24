@@ -111,6 +111,8 @@ BACKUP_DATA = {
         "City of Santa Ana Development Services Division.",
     ]
 }
+
+
 # ============================================================
 # LOAD DATA
 # ============================================================
@@ -224,5 +226,3 @@ st.markdown(
     """,
     unsafe_html=True
 )
-
-
