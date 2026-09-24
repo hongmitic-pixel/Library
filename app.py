@@ -478,9 +478,9 @@ elif result is not None:
 
     docx_buffer = build_docx(result)
 
-    st.download_button(
-        label="⬇️ Tải xuống (.docx)",
-        data=docx_buffer,
-        file_name=f"{result['city'].replace(' ', '_')}_specs.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    )
+st.download_button(
+    label="Tải xuống (.docx)",
+    data=docx_buffer,
+    file_name=f"{result['city'].replace(' ', '_')}_specs.docx",
+    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+)
