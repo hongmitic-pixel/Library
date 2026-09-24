@@ -461,7 +461,7 @@ elif result is not None:
     st.markdown(
         f"""
         <div class="lb-result-panel">
-            <div class="lb-result-city">📍 {result['city']}</div>
+            <div class="lb-result-city">&#128205; {result['city']}</div>
             {cards_html}
         </div>
         """,
