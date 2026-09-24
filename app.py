@@ -270,7 +270,6 @@ st.markdown(
         z-index: 1000;
     }
 
-    /* dots inside the top bar (real UI, top-left) */
     .lb-top-bar-dots {
         position: absolute;
         left: 18px;
@@ -282,14 +281,14 @@ st.markdown(
     }
 
     .lb-top-bar-dots span {
-        width: 15px;
-        height: 15px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         display: inline-block;
     }
 
     .lb-dot-1 { background: #FFFFFF; }
-    .lb-dot-2 { background: #9AFFFD; }
+    .lb-dot-2 { background: #123A54; }
     .lb-dot-3 { background: #F2C94C; }
 
     .lb-bottom-bar {
@@ -300,36 +299,34 @@ st.markdown(
         z-index: 1000;
     }
 
-    /* REMOVE DEFAULT STREAMLIT SPACING */
+    /* CONTAINER SPACING */
     .block-container {
         padding: 140px 3rem 80px 3rem !important;
         max-width: 640px !important;
         margin: 0 auto !important;
     }
 
-    /* BRAND ROW (logo + wordmark, left aligned) */
+    /* BRAND ROW (LOGO Ở GÓC TRÁI DƯỚI TOP BAR) */
     .lb-brand-row {
         position: fixed;
-        top: 85px;  /* Đặt vị trí nằm ngay dưới thanh top bar (thanh top bar cao 68px) */
-        left: 3rem; /* Căn lề trái tương đương với lề của trang */
+        top: 82px;
+        left: 3rem;
         z-index: 999;
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 0rem;
     }
 
     .lb-brand-row img {
-        height: 70px;
-        width: auto;
+        height: 75px !important;
+        width: auto !important;
         object-fit: contain;
     }
 
-    /* HERO TITLE (centered, gradient fill + light stroke) */
+    /* HERO TITLE TO HƠN */
     .lb-hero-title {
         font-family: 'Onest', sans-serif;
         font-weight: 800;
-        font-size: 4rem;
+        font-size: 3.8rem;
         line-height: 1.2;
         text-align: center;
         margin: 0 0 1.6rem 0;
@@ -341,101 +338,44 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-/* SEARCH ROW — bo tròn, viền xanh đen, có icon kính lúp */
+    /* SEARCH BAR — BO TRÒN, VIỀN XANH ĐEN, CÓ ICON KÍNH LÚP */
     div[data-testid="stTextInput"] {
-        max-width: 380px;
+        max-width: 420px;
         margin: 0 auto;
     }
 
     div[data-testid="stTextInput"] input {
-        border-radius: 30px !important; /* Bo tròn góc nhiều hơn (kiểu viên thuốc) */
-        border: 2px solid #123A54 !important; /* Viền màu xanh đen */
+        border-radius: 30px !important;
+        border: 2px solid #123A54 !important;
         height: 54px !important;
         padding: 0 52px 0 20px !important;
-        font-size: 0.95rem !important;
+        font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
         background: #FFFFFF !important;
         box-shadow: none !important;
-        /* Icon kính lúp ở bên phải */
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='18' cy='18' r='16' fill='%23F3FFFE' stroke='%23123A54' stroke-width='1.5'/><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23123A54' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23123A54' stroke-width='2' stroke-linecap='round'/></svg>");
         background-repeat: no-repeat;
-        background-position: right 10px center;
+        background-position: right 12px center;
     }
 
     div[data-testid="stTextInput"] input:focus {
         border-color: #23749F !important;
-        box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important; /* Hiệu ứng phát sáng nhẹ khi bấm vào */
+        box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important;
     }
 
-    /* Xóa màu nền xanh tự động của trình duyệt khi autofill */
     div[data-testid="stTextInput"] input:-webkit-autofill,
     div[data-testid="stTextInput"] input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
         -webkit-text-fill-color: #111827 !important;
     }
-
-    /* RESULT CARD CONTAINER (mint) */
-    .lb-result-panel {
-        background: #F3FFFE;
-        border-radius: 30px;
-        padding: 2.2rem 2.4rem 1.3rem 2.4rem;
-        margin-top: 1.8rem;
-    }
-
-    .lb-result-city {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #133C55;
-        margin-bottom: 1.2rem;
-    }
-
-    .result-card {
-        border: 1px solid #E5E7EB;
-        border-radius: 14px;
-        padding: 1.2rem 1.5rem;
-        margin-bottom: 0.9rem;
-        background: #FFFFFF;
-    }
-
-    .result-label {
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #6B7280;
-        margin-bottom: 0.3rem;
-    }
-
-    .result-value {
-        font-size: 0.98rem;
-        color: #111827;
-    }
-
-    /* DOWNLOAD BUTTON */
-    div[data-testid="stDownloadButton"] {
-        display: flex;
-        justify-content: center;
-        margin-top: -0.6rem;
-    }
-
-    div[data-testid="stDownloadButton"] button {
-        background: #23749F !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        border-radius: 30px !important;
-        padding: 0.6rem 1.8rem !important;
-        font-family: 'Onest', sans-serif !important;
-        font-weight: 600 !important;
-        font-size: 0.92rem !important;
-        box-shadow: 0px 2px 6px rgba(35, 116, 159, 0.35) !important;
-    }
-
-    div[data-testid="stDownloadButton"] button:hover {
-        background: #1B5C7E !important;
-        color: #FFFFFF !important;
-    }
     </style>
+    """,
+    unsafe_allow_html=True
+)
 
+# Đảm bảo phần render thanh top/bottom bar được gọi đúng cách trong st.markdown:
+st.markdown(
+    """
     <div class="lb-top-bar">
         <div class="lb-top-bar-dots">
             <span class="lb-dot-1"></span>
@@ -447,7 +387,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 # ============================================================
 # HEADER
