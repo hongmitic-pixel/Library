@@ -313,6 +313,7 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
+    /* ĐỊNH DẠNG KHUNG THANH TÌM KIẾM */
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
@@ -328,18 +329,19 @@ st.markdown(
         background: transparent !important;
     }
 
+    /* ĐẶT KÍNH LÚP TRỰC TIẾP VÀO Ô INPUT BÊN TRÁI */
     div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: none !important;
         height: 50px !important;
-        padding: 0 52px 0 20px !important;
+        padding: 0 20px 0 50px !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
-        background: transparent !important;
+        background-color: transparent !important;
         box-shadow: none !important;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23123A54' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23123A54' stroke-width='2' stroke-linecap='round'/></svg>");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 15px center;
+        background-position: 18px center;
     }
 
     div[data-testid="stTextInput"]:focus-within {
@@ -386,7 +388,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 # ============================================================
 # HEADER
