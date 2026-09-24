@@ -313,21 +313,44 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-# KHUNG BAO BỌC NGOÀI THANH TÌM KIẾM
+# ============================================================
+    # CUSTOM CSS CHO THANH TÌM KIẾM
+    # ============================================================
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
         border-radius: 30px !important;
         border: 2px solid #123A54 !important;
         background: #FFFFFF !important;
-        overflow: hidden !important;
+        padding: 4px 16px 4px 44px !important; /* Chừa khoảng trống bên trái cho icon kính lúp */
+        position: relative !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
+    /* ĐẶT ICON KÍNH LÚP BÊN TRÁI KHUNG */
+    div[data-testid="stTextInput"]::before {
+        content: "";
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* ẨN CÁC KHUNG GIAO DIỆN MẶC ĐỊNH CỦA STREAMLIT */
     div[data-testid="stTextInput"] > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
+        width: 100% !important;
     }
 
     div[data-testid="stTextInput"] > div > div {
@@ -336,30 +359,22 @@ st.markdown(
         background: transparent !important;
     }
 
-    # CANH CHỈNH Ô INPUT VÀ CHỮ "PRESS ENTER TO APPLY" CĂN GIỮA DỌC
+    /* Ô NHẬP LIỆU CHÍNH */
     div[data-testid="stTextInput"] input {
-        border-radius: 30px !important;
         border: none !important;
-        height: 50px !important;
-        line-height: 50px !important; /* Giúp căn chữ bên trong và placeholder cân đối dọc */
-        padding: 0 110px 0 46px !important; /* Chừa khoảng trống bên phải vừa đủ cho chữ Press Enter */
+        height: 38px !important;
+        padding: 0 !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
         background-color: transparent !important;
         box-shadow: none !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: 16px center;
+        color: #111827 !important;
     }
 
-    /* ĐỊNH VỊ CHÍNH XÁC VÀ CĂN GIỮA DỌC CHO DÒNG CHỮ "PRESS ENTER TO APPLY" */
-    div[data-testid="stTextInput"] div[data-baseweb="input"] {
-        position: relative !important;
-    }
-
+    /* ĐỊNH VỊ VÀ CĂN GIỮA DỌC DÒNG CHỮ "PRESS ENTER TO APPLY" BÊN PHẢI */
     div[data-testid="stTextInput"] div[data-baseweb="input"] + div {
         position: absolute !important;
-        right: 18px !important;
+        right: 16px !important;
         top: 50% !important;
         transform: translateY(-50%) !important;
         display: flex !important;
@@ -370,7 +385,7 @@ st.markdown(
 
     div[data-testid="stTextInput"] div[data-baseweb="input"] + div small {
         font-family: 'Onest', sans-serif !important;
-        font-size: 0.8rem !important;
+        font-size: 0.78rem !important;
         color: #94A3B8 !important;
         visibility: visible !important;
     }
@@ -378,6 +393,12 @@ st.markdown(
     div[data-testid="stTextInput"]:focus-within {
         border-color: #23749F !important;
         box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important;
+    }
+
+    div[data-testid="stTextInput"] input:-webkit-autofill,
+    div[data-testid="stTextInput"] input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+        -webkit-text-fill-color: #111827 !important;
     }
 
     .lb-result-panel {
