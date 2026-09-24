@@ -120,7 +120,6 @@ def load_data():
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_URL)
-
         df.columns = df.columns.astype(str).str.strip().str.lower()
 
         rename_map = {
@@ -169,7 +168,6 @@ def search_city(search_text):
         return None
 
     search_text = str(search_text).strip().lower()
-
     if not search_text:
         return None
 
@@ -192,7 +190,6 @@ def search_city(search_text):
 
 
 def build_docx(result_row):
-    """Tạo file Word (.docx) từ dữ liệu 1 thành phố, trả về bytes để tải xuống."""
     doc = Document()
 
     title = doc.add_heading(f"{result_row['city']}", level=1)
@@ -251,7 +248,26 @@ st.markdown(
         height: 68px;
         background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%);
         z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding-left: 20px;
     }
+
+    .lb-top-bar-dots {
+        display: flex;
+        gap: 8px;
+    }
+
+    .lb-top-bar-dots span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .lb-dot-1 { background-color: #FF5F56; }
+    .lb-dot-2 { background-color: #FFBD2E; }
+    .lb-dot-3 { background-color: #27C93F; }
 
     .lb-bottom-bar {
         position: fixed;
@@ -297,7 +313,6 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-   /* SEARCH ROW — Khung bao bọc ngoài viên thuốc liền mạch */
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
@@ -307,14 +322,12 @@ st.markdown(
         overflow: hidden !important;
     }
 
-    /* Triệt tiêu khung con mặc định của Streamlit gây hiện tượng đè viền */
     div[data-testid="stTextInput"] > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
     }
 
-    /* Ô nhập liệu bên trong (Có chừa khoảng trống bên phải cho icon kính lúp) */
     div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: none !important;
@@ -329,26 +342,60 @@ st.markdown(
         background-position: right 15px center;
     }
 
-    /* Hiệu ứng khi click vào ô tìm kiếm */
     div[data-testid="stTextInput"]:focus-within {
         border-color: #23749F !important;
         box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important;
     }
 
-    /* Xóa nền xanh khi autofill */
     div[data-testid="stTextInput"] input:-webkit-autofill,
     div[data-testid="stTextInput"] input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
         -webkit-text-fill-color: #111827 !important;
     }
 
+    .lb-result-panel {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 2rem;
+    }
+
+    .lb-result-city {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #133C55;
+        margin-bottom: 1rem;
+    }
+
+    .result-card {
+        margin-bottom: 1rem;
+    }
+
+    .result-label {
+        font-weight: 600;
+        color: #595656;
+        font-size: 0.95rem;
+    }
+
+    .result-value {
+        color: #111827;
+        font-size: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # ============================================================
 # HEADER
 # ============================================================
 
+
 def _logo_data_uri(path):
     import base64
+
     try:
         ext = os.path.splitext(path)[1].lstrip(".").lower() or "png"
         mime = "jpeg" if ext == "jpg" else ext
@@ -357,6 +404,7 @@ def _logo_data_uri(path):
         return f"data:image/{mime};base64,{encoded}"
     except Exception:
         return None
+
 
 logo_uri = _logo_data_uri(LOGO_FILE) if os.path.exists(LOGO_FILE) else None
 logo_html = (
@@ -382,6 +430,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 # ============================================================
 # SEARCH BOX
