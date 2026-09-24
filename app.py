@@ -1,3 +1,23 @@
+import io
+import os
+import pandas as pd
+import streamlit as st
+
+from docx import Document
+from docx.shared import Pt, RGBColor
+
+
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="LINE BASE - Quick Search",
+    page_icon="🔎",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
 # -*- coding: utf-8 -*-
 import io
 import os
@@ -6,7 +26,85 @@ import streamlit as st
 
 from docx import Document
 from docx.shared import Pt, RGBColor
-from docxtpl import DocxTemplate
+
+
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="LINE BASE - Quick Search",
+    page_icon="🔎",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+
+# ============================================================
+# CONFIG
+# ============================================================
+
+LOGO_FILE = "logo_line_base.png"
+
+# ------------------------------------------------------------
+# GOOGLE SHEET
+# ------------------------------------------------------------
+GOOGLE_SHEET_URL = "https://google.com"
+
+
+# ============================================================
+# BACKUP DATA
+# ============================================================
+
+BACKUP_DATA = {
+    "city": [
+        "Adelanto",
+        "Agoura Hills",
+        "Alameda",
+        "Albany",
+        "Alhambra",
+        "Aliso Viejo",
+        "Los Angeles",
+        "San Francisco",
+        "San Jose",
+        "San Diego",
+        "Santa Ana",
+    ],
+    "building_code": [
+        "2025/2026 California Building Code (CBC) - Adelanto City Amendments.",
+        "2025/2026 California Building Code (CBC) - Agoura Hills City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alameda City Amendments.",
+        "2025/2026 California Building Code (CBC) - Albany City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alhambra City Amendments.",
+        "2025/2026 California Building Code (CBC) - Aliso Viejo City Amendments.",
+        "2025/2026 California Building Code (CBC) - Los Angeles City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Francisco City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Jose City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Diego City Amendments.",
+        "2025/2026 California Building Code (CBC) - Santa Ana City Amendments.",
+    ],
+    "drainage_civil_specs": [
+        "City of Adelanto Public Works Design Manual Standard Specs.",
+        "City of Agoura Hills Public Works Design Manual Standard Specs.",
+        "City of Alameda Public Works Design Manual Standard Specs.",
+        "City of Albany Public Works Design Manual Standard Specs.",
+        "City of Alhambra Public Works Design Manual Standard Specs.",
+        "City of Aliso Viejo Public Works Design Manual Standard Specs.",
+        "City of Los Angeles Public Works Design Manual Standard Specs.",
+        "City of San Francisco Public Works Design Manual Standard Specs.",
+        "City of San Jose Public Works Design Manual Standard Specs.",
+        "City of San Diego Public Works Design Manual Standard Specs.",
+        "City of Santa Ana Public Works Design Manual Standard Specs.",
+    ],
+    "low_impact_development": [
+        "Adelanto Municipal Stormwater # -*- coding: utf-8 -*-
+import io
+import os
+import pandas as pd
+import streamlit as st
+
+from docx import Document
+from docx.shared import Pt, RGBColor
 
 
 # ============================================================
@@ -111,225 +209,325 @@ BACKUP_DATA = {
 # ============================================================
 
 
-@st.cache_data(ttl=300)
-def load_data():
-    backup_df = pd.DataFrame(BACKUP_DATA)
+# ============================================================
+# CONFIG
+# ============================================================
 
-    if not GOOGLE_SHEET_URL:
-        return backup_df
+LOGO_FILE = "logo_line_base.png"
 
-    try:
-        df = pd.read_csv(GOOGLE_SHEET_URL)
-        df.columns = df.columns.astype(str).str.strip().str.lower()
-
-        rename_map = {
-            "drainage civil specs": "drainage_civil_specs",
-            "drainage_civil_specs": "drainage_civil_specs",
-            "building code": "building_code",
-            "building_code": "building_code",
-            "low impact development": "low_impact_development",
-            "low_impact_development": "low_impact_development",
-            "local permit agency": "local_permit_agency",
-            "local_permit_agency": "local_permit_agency",
-            "city": "city",
-        }
-
-        df = df.rename(columns=rename_map)
-
-        required_columns = [
-            "city",
-            "building_code",
-            "drainage_civil_specs",
-            "low_impact_development",
-            "local_permit_agency",
-        ]
-
-        if all(col in df.columns for col in required_columns):
-            df = df[required_columns].copy()
-            df["city"] = df["city"].astype(str).str.strip()
-            return df
-
-    except Exception:
-        pass
-
-    return backup_df
-
-
-df_cities = load_data()
+# ------------------------------------------------------------
+# GOOGLE SHEET
+# ------------------------------------------------------------
+GOOGLE_SHEET_URL = "https://google.com"
 
 
 # ============================================================
-# SEARCH FUNCTION
+# BACKUP DATA
 # ============================================================
 
+BACKUP_DATA = {
+    "city": [
+        "Adelanto",
+        "Agoura Hills",
+        "Alameda",
+        "Albany",
+        "Alhambra",
+        "Aliso Viejo",
+        "Los Angeles",
+        "San Francisco",
+        "San Jose",
+        "San Diego",
+        "Santa Ana",
+    ],
+    "building_code": [
+        "2025/2026 California Building Code (CBC) - Adelanto City Amendments.",
+        "2025/2026 California Building Code (CBC) - Agoura Hills City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alameda City Amendments.",
+        "2025/2026 California Building Code (CBC) - Albany City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alhambra City Amendments.",
+        "2025/2026 California Building Code (CBC) - Aliso Viejo City Amendments.",
+        "2025/2026 California Building Code (CBC) - Los Angeles City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Francisco City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Jose City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Diego City Amendments.",
+        "2025/2026 California Building Code (CBC) - Santa Ana City Amendments.",
+    ],
+    "drainage_civil_specs": [
+        "City of Adelanto Public Works Design Manual Standard Specs.",
+        "City of Agoura Hills Public Works Design Manual Standard Specs.",
+        "City of Alameda Public Works Design Manual Standard Specs.",
+        "City of Albany Public Works Design Manual Standard Specs.",
+        "City of Alhambra Public Works Design Manual Standard Specs.",
+        "City of Aliso Viejo Public Works Design Manual Standard Specs.",
+        "City of Los Angeles Public Works Design Manual Standard Specs.",
+        "City of San Francisco Public Works Design Manual Standard Specs.",
+        "City of San Jose Public Works Design Manual Standard Specs.",
+        "City of San Diego Public Works Design Manual Standard Specs.",
+        "City of Santa Ana Public Works Design Manual Standard Specs.",
+    ],
+    "low_impact_development": [
+        "Adelanto Municipal Stormwater # -*- coding: utf-8 -*-
+import io
+import os
+import pandas as pd
+import streamlit as st
 
-def search_city(search_text):
-    if not search_text:
-        return None
-
-    search_text = str(search_text).strip().lower()
-    if not search_text:
-        return None
-
-    for _, row in df_cities.iterrows():
-        city = str(row["city"]).strip()
-        if city.lower() in search_text:
-            return row
-
-    for _, row in df_cities.iterrows():
-        city = str(row["city"]).strip()
-        if search_text in city.lower():
-            return row
-
-    return None
-
-
-# ============================================================
-# EXPORT TO WORD (.docx)
-# ============================================================
-
-
-def build_docx(result_row):
-    doc = Document()
-
-    title = doc.add_heading(f"{result_row['city']}", level=1)
-    for run in title.runs:
-        run.font.color.rgb = RGBColor(0x13, 0x3C, 0x55)
-
-    subtitle = doc.add_paragraph()
-    subtitle_run = subtitle.add_run("LINE BASE — Quick Search Report")
-    subtitle_run.italic = True
-
-    fields = [
-        ("Building Code", result_row["building_code"]),
-        ("Drainage / Civil Specs", result_row["drainage_civil_specs"]),
-        (
-            "Low Impact Development (LID)",
-            result_row["low_impact_development"],
-        ),
-        ("Local Permit Agency", result_row["local_permit_agency"]),
-    ]
-
-    for label, value in fields:
-        heading = doc.add_heading(label, level=2)
-        for run in heading.runs:
-            run.font.size = Pt(13)
-            run.font.color.rgb = RGBColor(0x59, 0x56, 0x56)
-
-        doc.add_paragraph(str(value))
-
-    buffer = io.BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
+from docx import Document
+from docx.shared import Pt, RGBColor
 
 
 # ============================================================
-# CUSTOM CSS
+# PAGE CONFIG
 # ============================================================
 
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
+st.set_page_config(
+    page_title="LINE BASE - Quick Search",
+    page_icon="🔎",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-        background: #FFFFFF !important;
-        font-family: 'Onest', sans-serif !important;
-    }
-
-    [data-testid="stHeader"], header, footer, [data-testid="stToolbar"], #MainMenu {
-        display: none !important;
-    }
-
-    .lb-top-bar {
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 68px;
-        background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        padding-left: 20px;
-    }
-
-    .lb-top-bar-dots {
-        display: flex;
-        gap: 8px;
-    }
-
-    .lb-top-bar-dots span {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .lb-dot-1 { background-color: #FF5F56; }
-    .lb-dot-2 { background-color: #FFBD2E; }
-    .lb-dot-3 { background-color: #27C93F; }
-
-    .lb-bottom-bar {
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        height: 35px;
-        background: linear-gradient(90deg, #72DDE4 24%, #23749F 67%);
-        z-index: 1000;
-    }
-
-    .block-container {
-        padding: 140px 3rem 80px 3rem !important;
-        max-width: 640px !important;
-        margin: 0 auto !important;
-    }
-
-    .lb-brand-row {
-        position: fixed;
-        top: 82px;
-        left: 3rem;
-        z-index: 999;
-        display: flex;
-        align-items: center;
-    }
-
-    .lb-brand-row img {
-        height: 75px !important;
-        width: auto !important;
-        object-fit: contain;
-    }
-
-    .lb-hero-title {
-        font-family: 'Onest', sans-serif;
-        font-weight: 800;
-        font-size: 3.8rem;
-        line-height: 1.2;
-        text-align: center;
-        margin: 0 0 1.6rem 0;
-        background: linear-gradient(180deg, #BFF0F5 0%, #2E8FC0 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
-        text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
-    }
 
 # ============================================================
-    # CUSTOM CSS CHO THANH TÌM KIẾM
-    # ============================================================
-    div[data-testid="stTextInput"] {
-        max-width: 420px;
-        margin: 0 auto;
-        border-radius: 30px !important;
+# CONFIG
+# ============================================================
+
+LOGO_FILE = "logo_line_base.png"
+
+# ------------------------------------------------------------
+# GOOGLE SHEET
+# ------------------------------------------------------------
+GOOGLE_SHEET_URL = "https://google.com"
+
+
+# ============================================================
+# BACKUP DATA
+# ============================================================
+
+BACKUP_DATA = {
+    "city": [
+        "Adelanto",
+        "Agoura Hills",
+        "Alameda",
+        "Albany",
+        "Alhambra",
+        "Aliso Viejo",
+        "Los Angeles",
+        "San Francisco",
+        "San Jose",
+        "San Diego",
+        "Santa Ana",
+    ],
+    "building_code": [
+        "2025/2026 California Building Code (CBC) - Adelanto City Amendments.",
+        "2025/2026 California Building Code (CBC) - Agoura Hills City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alameda City Amendments.",
+        "2025/2026 California Building Code (CBC) - Albany City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alhambra City Amendments.",
+        "2025/2026 California Building Code (CBC) - Aliso Viejo City Amendments.",
+        "2025/2026 California Building Code (CBC) - Los Angeles City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Francisco City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Jose City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Diego City Amendments.",
+        "2025/2026 California Building Code (CBC) - Santa Ana City Amendments.",
+    ],
+    "drainage_civil_specs": [
+        "City of Adelanto Public Works Design Manual Standard Specs.",
+        "City of Agoura Hills Public Works Design Manual Standard Specs.",
+        "City of Alameda Public Works Design Manual Standard Specs.",
+        "City of Albany Public Works Design Manual Standard Specs.",
+        "City of Alhambra Public Works Design Manual Standard Specs.",
+        "City of Aliso Viejo Public Works Design Manual Standard Specs.",
+        "City of Los Angeles Public Works Design Manual Standard Specs.",
+        "City of San Francisco Public Works Design Manual Standard Specs.",
+        "City of San Jose Public Works Design Manual Standard Specs.",
+        "City of San Diego Public Works Design Manual Standard Specs.",
+        "City of Santa Ana Public Works Design Manual Standard Specs.",
+    ],
+    "low_impact_development": [
+        "Adelanto Municipal Stormwater Management - LID Rules.",
+        "Agoura Hills Municipal Stormwater Management - LID Rules.",
+        "Alameda Municipal Stormwater Management - LID Rules.",
+        "Albany Municipal Stormwater Management - LID Rules.",
+        "Alhambra Municipal Stormwater Management - LID Rules.",
+        "Aliso Viejo Municipal Stormwater Management - LID Rules.",
+        "Los Angeles Municipal Stormwater Management - LID Rules.",
+        "San Francisco Municipal Stormwater Management - LID Rules.",
+        "San Jose Municipal Stormwater Management - LID Rules.",
+        "San Diego Municipal Stormwater Management - LID Rules.",
+        "Santa Ana Municipal Stormwater Management - LID Rules.",
+    ],
+    "local_permit_agency": [
+        "City of Adelanto Development Services Division.",
+        "City of Agoura Hills Development Services Division.",
+        "City of Alameda Development Services Division.",
+        "City of Albany Development Services Division.",
+        "City of Alhambra Development Services Division.",
+        "City of Aliso Viejo Development Services Division.",
+        "City of Los Angeles Development Services Division.",
+        "City of San Francisco Development Services Division.",
+        "City of San Jose Development Services Division.",
+        "City of San Diego Development Services Division.",
+        "City of Santa Ana Development Services Division.",
+    ],
+}
+
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+
+    ],
+    "building_code": [
+        "2025/2026 California Building Code (CBC) - Adelanto City Amendments.",
+        "2025/2026 California Building Code (CBC) - Agoura Hills City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alameda City Amendments.",
+        "2025/2026 California Building Code (CBC) - Albany City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alhambra City Amendments.",
+        "2025/2026 California Building Code (CBC) - Aliso Viejo City Amendments.",
+        "2025/2026 California Building Code (CBC) - Los Angeles City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Francisco City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Jose City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Diego City Amendments.",
+        "2025/2026 California Building Code (CBC) - Santa Ana City Amendments.",
+    ],
+    "drainage_civil_specs": [
+        "City of Adelanto Public Works Design Manual Standard Specs.",
+        "City of Agoura Hills Public Works Design Manual Standard Specs.",
+        "City of Alameda Public Works Design Manual Standard Specs.",
+        "City of Albany Public Works Design Manual Standard Specs.",
+        "City of Alhambra Public Works Design Manual Standard Specs.",
+        "City of Aliso Viejo Public Works Design Manual Standard Specs.",
+        "City of Los Angeles Public Works Design Manual Standard Specs.",
+        "City of San Francisco Public Works Design Manual Standard Specs.",
+        "City of San Jose Public Works Design Manual Standard Specs.",
+        "City of San Diego Public Works Design Manual Standard Specs.",
+        "City of Santa Ana Public Works Design Manual Standard Specs.",
+    ],
+    "low_impact_development": [
+        "Adelanto Municipal Stormwater # -*- coding: utf-8 -*-
+import io
+import os
+import pandas as pd
+import streamlit as st
+
+from docx import Document
+from docx.shared import Pt, RGBColor
+
+
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="LINE BASE - Quick Search",
+    page_icon="🔎",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+
+# ============================================================
+# CONFIG
+# ============================================================
+
+LOGO_FILE = "logo_line_base.png"
+
+# ------------------------------------------------------------
+# GOOGLE SHEET
+# ------------------------------------------------------------
+GOOGLE_SHEET_URL = "https://google.com"
+
+
+# ============================================================
+# BACKUP DATA
+# ============================================================
+
+BACKUP_DATA = {
+    "city": [
+        "Adelanto",
+        "Agoura Hills",
+        "Alameda",
+        "Albany",
+        "Alhambra",
+        "Aliso Viejo",
+        "Los Angeles",
+        "San Francisco",
+        "San Jose",
+        "San Diego",
+        "Santa Ana",
+    ],
+    "building_code": [
+        "2025/2026 California Building Code (CBC) - Adelanto City Amendments.",
+        "2025/2026 California Building Code (CBC) - Agoura Hills City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alameda City Amendments.",
+        "2025/2026 California Building Code (CBC) - Albany City Amendments.",
+        "2025/2026 California Building Code (CBC) - Alhambra City Amendments.",
+        "2025/2026 California Building Code (CBC) - Aliso Viejo City Amendments.",
+        "2025/2026 California Building Code (CBC) - Los Angeles City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Francisco City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Jose City Amendments.",
+        "2025/2026 California Building Code (CBC) - San Diego City Amendments.",
+        "2025/2026 California Building Code (CBC) - Santa Ana City Amendments.",
+    ],
+    "drainage_civil_specs": [
+        "City of Adelanto Public Works Design Manual Standard Specs.",
+        "City of Agoura Hills Public Works Design Manual Standard Specs.",
+        "City of Alameda Public Works Design Manual Standard Specs.",
+        "City of Albany Public Works Design Manual Standard Specs.",
+        "City of Alhambra Public Works Design Manual Standard Specs.",
+        "City of Aliso Viejo Public Works Design Manual Standard Specs.",
+        "City of Los Angeles Public Works Design Manual Standard Specs.",
+        "City of San Francisco Public Works Design Manual Standard Specs.",
+        "City of San Jose Public Works Design Manual Standard Specs.",
+        "City of San Diego Public Works Design Manual Standard Specs.",
+        "City of Santa Ana Public Works Design Manual Standard Specs.",
+    ],
+    "low_impact_development": [
+        "Adelanto Municipal Stormwater Management - LID Rules.",
+        "Agoura Hills Municipal Stormwater Management - LID Rules.",
+        "Alameda Municipal Stormwater Management - LID Rules.",
+        "Albany Municipal Stormwater Management - LID Rules.",
+        "Alhambra Municipal Stormwater Management - LID Rules.",
+        "Aliso Viejo Municipal Stormwater Management - LID Rules.",
+        "Los Angeles Municipal Stormwater Management - LID Rules.",
+        "San Francisco Municipal Stormwater Management - LID Rules.",
+        "San Jose Municipal Stormwater Management - LID Rules.",
+        "San Diego Municipal Stormwater Management - LID Rules.",
+        "Santa Ana Municipal Stormwater Management - LID Rules.",
+    ],
+    "local_permit_agency": [
+        "City of Adelanto Development Services Division.",
+        "City of Agoura Hills Development Services Division.",
+        "City of Alameda Development Services Division.",
+        "City of Albany Development Services Division.",
+        "City of Alhambra Development Services Division.",
+        "City of Aliso Viejo Development Services Division.",
+        "City of Los Angeles Development Services Division.",
+        "City of San Francisco Development Services Division.",
+        "City of San Jose Development Services Division.",
+        "City of San Diego Development Services Division.",
+        "City of Santa Ana Development Services Division.",
+    ],
+}
+
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+
         border: 2px solid #123A54 !important;
         background: #FFFFFF !important;
-        padding: 4px 16px 4px 44px !important; /* Chừa khoảng trống bên trái cho icon kính lúp */
+        padding: 0 16px 0 46px !important;
         position: relative !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
         display: flex !important;
         align-items: center !important;
+        height: 50px !important;
     }
 
-    /* ĐẶT ICON KÍNH LÚP BÊN TRÁI KHUNG */
     div[data-testid="stTextInput"]::before {
         content: "";
         position: absolute;
@@ -342,27 +540,33 @@ st.markdown(
         background-repeat: no-repeat;
         background-position: center;
         pointer-events: none;
-        z-index: 2;
+        z-index: 5;
     }
 
-    /* ẨN CÁC KHUNG GIAO DIỆN MẶC ĐỊNH CỦA STREAMLIT */
     div[data-testid="stTextInput"] > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
         width: 100% !important;
+        padding: 0 !important;
     }
 
     div[data-testid="stTextInput"] > div > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
+        width: 100% !important;
     }
 
-    /* Ô NHẬP LIỆU CHÍNH */
+    div[data-testid="stTextInput"] div[data-baseweb="input"] {
+        background: transparent !important;
+        border: none !important;
+        width: 100% !important;
+    }
+
     div[data-testid="stTextInput"] input {
         border: none !important;
-        height: 38px !important;
+        height: 40px !important;
         padding: 0 !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
@@ -371,7 +575,6 @@ st.markdown(
         color: #111827 !important;
     }
 
-    /* ĐỊNH VỊ VÀ CĂN GIỮA DỌC DÒNG CHỮ "PRESS ENTER TO APPLY" BÊN PHẢI */
     div[data-testid="stTextInput"] div[data-baseweb="input"] + div {
         position: absolute !important;
         right: 16px !important;
@@ -381,6 +584,7 @@ st.markdown(
         align-items: center !important;
         margin: 0 !important;
         pointer-events: none;
+        z-index: 5;
     }
 
     div[data-testid="stTextInput"] div[data-baseweb="input"] + div small {
@@ -431,7 +635,6 @@ st.markdown(
         font-size: 1rem;
     }
 
-    /* ĐỊNH DẠNG NÚT TẢI XUỐNG NẰM TRONG KHUNG */
     div[data-testid="stDownloadButton"] {
         margin-top: 1.5rem !important;
     }
@@ -545,7 +748,6 @@ elif result is not None:
         for label, value in fields
     )
 
-    # Hiển thị khung chứa thông tin kết quả
     st.markdown(
         f"""
         <div class="lb-result-panel">
@@ -556,7 +758,6 @@ elif result is not None:
         unsafe_allow_html=True,
     )
 
-    # Nút tải xuống (.docx) sẽ nằm ngay phía dưới nội dung trong cùng một khối giao diện
     docx_buffer = build_docx(result)
     st.download_button(
         label="📥 Download",
