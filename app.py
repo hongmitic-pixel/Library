@@ -297,55 +297,58 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
+   /* SEARCH ROW — Khung bao bọc ngoài viên thuốc liền mạch */
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
         border-radius: 30px !important;
         border: 2px solid #123A54 !important;
         background: #FFFFFF !important;
+        overflow: hidden !important;
     }
 
+    /* Triệt tiêu khung con mặc định của Streamlit gây hiện tượng đè viền */
     div[data-testid="stTextInput"] > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
     }
 
+    /* Ô nhập liệu bên trong (Có chừa khoảng trống bên phải cho icon kính lúp) */
     div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: none !important;
         height: 50px !important;
-        padding: 0 20px !important;
+        padding: 0 52px 0 20px !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
         background: transparent !important;
         box-shadow: none !important;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23123A54' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23123A54' stroke-width='2' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
     }
 
+    /* Hiệu ứng khi click vào ô tìm kiếm */
     div[data-testid="stTextInput"]:focus-within {
         border-color: #23749F !important;
         box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important;
     }
 
+    /* Xóa nền xanh khi autofill */
     div[data-testid="stTextInput"] input:-webkit-autofill,
     div[data-testid="stTextInput"] input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
         -webkit-text-fill-color: #111827 !important;
     }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 
 # ============================================================
 # HEADER
 # ============================================================
 
-
 def _logo_data_uri(path):
     import base64
-
     try:
         ext = os.path.splitext(path)[1].lstrip(".").lower() or "png"
         mime = "jpeg" if ext == "jpg" else ext
@@ -354,7 +357,6 @@ def _logo_data_uri(path):
         return f"data:image/{mime};base64,{encoded}"
     except Exception:
         return None
-
 
 logo_uri = _logo_data_uri(LOGO_FILE) if os.path.exists(LOGO_FILE) else None
 logo_html = (
@@ -365,6 +367,14 @@ logo_html = (
 
 st.markdown(
     f"""
+    <div class="lb-top-bar">
+        <div class="lb-top-bar-dots">
+            <span class="lb-dot-1"></span>
+            <span class="lb-dot-2"></span>
+            <span class="lb-dot-3"></span>
+        </div>
+    </div>
+    <div class="lb-bottom-bar"></div>
     <div class="lb-brand-row">
         {logo_html}
     </div>
@@ -372,7 +382,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 # ============================================================
 # SEARCH BOX
