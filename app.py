@@ -31,7 +31,7 @@ LOGO_FILE = "logo_line_base.png"
 # ------------------------------------------------------------
 # GOOGLE SHEET
 # ------------------------------------------------------------
-# URL Google Sheet đã xuất bản dưới dạng CSV của bạn:
+# Đã cập nhật đúng URL Google Sheet xuất bản dưới dạng CSV của bạn
 
 GOOGLE_SHEET_URL = "https://google.com"
 
@@ -226,6 +226,7 @@ st.markdown(
     """,
     unsafe_html=True
 )
+
 
 
 
