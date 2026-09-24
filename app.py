@@ -212,9 +212,11 @@ st.markdown(
     html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
         background: #FFFFFF !important;
     }
+    
     [data-testid="stHeader"], header, footer, [data-testid="stToolbar"], #MainMenu {
         display: none !important;
     }
+    
     /* REMOVE DEFAULT STREAMLIT SPACING */
     .block-container {
         padding: 0 !important;
@@ -224,6 +226,7 @@ st.markdown(
     """,
     unsafe_html=True
 )
+
 
 
 /* ==========================================================
