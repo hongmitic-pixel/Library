@@ -4,6 +4,8 @@ import io
 import os
 
 from docxtpl import DocxTemplate
+from docx import Document
+from docx.shared import Pt, RGBColor
 
 
 # ============================================================
@@ -202,6 +204,45 @@ def search_city(search_text):
 
 
 # ============================================================
+# EXPORT TO WORD (.docx)
+# ============================================================
+
+def build_docx(result_row):
+    """Tạo file Word (.docx) từ dữ liệu 1 thành phố, trả về bytes để tải xuống."""
+
+    doc = Document()
+
+    # Tiêu đề
+    title = doc.add_heading(f"{result_row['city']}", level=1)
+    for run in title.runs:
+        run.font.color.rgb = RGBColor(0x13, 0x3C, 0x55)
+
+    subtitle = doc.add_paragraph()
+    subtitle_run = subtitle.add_run("LINE BASE — Quick Search Report")
+    subtitle_run.italic = True
+
+    fields = [
+        ("Building Code", result_row["building_code"]),
+        ("Drainage / Civil Specs", result_row["drainage_civil_specs"]),
+        ("Low Impact Development (LID)", result_row["low_impact_development"]),
+        ("Local Permit Agency", result_row["local_permit_agency"]),
+    ]
+
+    for label, value in fields:
+        heading = doc.add_heading(label, level=2)
+        for run in heading.runs:
+            run.font.size = Pt(13)
+            run.font.color.rgb = RGBColor(0x59, 0x56, 0x56)
+
+        doc.add_paragraph(str(value))
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+# ============================================================
 # CUSTOM CSS
 # ============================================================
 
@@ -229,15 +270,27 @@ st.markdown(
         z-index: 1000;
     }
 
-    /* small brand mark placeholder inside the top bar */
-    .lb-top-bar-mark {
+    /* dots inside the top bar (real UI, top-left) */
+    .lb-top-bar-dots {
         position: absolute;
-        left: 2.5vw;
-        top: 22px;
-        width: 126px;
-        height: 25px;
-        background: #FFFFFF;
+        left: 18px;
+        top: 0;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
     }
+
+    .lb-top-bar-dots span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .lb-dot-1 { background: #FFFFFF; }
+    .lb-dot-2 { background: #123A54; }
+    .lb-dot-3 { background: #F2C94C; }
 
     .lb-bottom-bar {
         position: fixed;
@@ -249,46 +302,59 @@ st.markdown(
 
     /* REMOVE DEFAULT STREAMLIT SPACING */
     .block-container {
-        padding: 130px 3rem 80px 3rem !important;
-        max-width: 900px !important;
+        padding: 100px 3rem 80px 3rem !important;
+        max-width: 640px !important;
         margin: 0 auto !important;
     }
 
-    /* HERO HEADER */
-    .lb-hero {
+    /* BRAND ROW (logo + wordmark, left aligned) */
+    .lb-brand-row {
         display: flex;
         align-items: center;
-        gap: 2rem;
-        margin-bottom: 2.5rem;
+        gap: 0.6rem;
+        margin-bottom: 1.6rem;
     }
 
-    .lb-hero img {
-        width: 160px;
-        height: auto;
+    .lb-brand-row img {
+        height: 42px;
+        width: auto;
+        object-fit: contain;
     }
 
+    /* HERO TITLE (centered, gradient fill + light stroke) */
     .lb-hero-title {
         font-family: 'Onest', sans-serif;
-        font-weight: 400;
-        font-size: 4rem;
-        line-height: 1.15;
-        color: #89EDF3;
-        text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-        margin: 0;
+        font-weight: 800;
+        font-size: 2.5rem;
+        line-height: 1.2;
+        text-align: center;
+        margin: 0 0 1.6rem 0;
+        background: linear-gradient(180deg, #BFF0F5 0%, #2E8FC0 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+        text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-    /* SEARCH PILL */
-    .st-key-lb_search_wrap {
-        position: relative;
+    /* SEARCH ROW — compact, centered */
+    div[data-testid="stTextInput"] {
+        max-width: 380px;
+        margin: 0 auto;
     }
 
     div[data-testid="stTextInput"] input {
-        border-radius: 70px !important;
-        border: 2px solid #595656 !important;
-        height: 70px !important;
-        padding: 0 60px 0 28px !important;
-        font-size: 1.05rem !important;
+        border-radius: 18px !important;
+        border: 1.5px solid #BEBEBE !important;
+        height: 54px !important;
+        padding: 0 52px 0 20px !important;
+        font-size: 0.95rem !important;
         font-family: 'Onest', sans-serif !important;
+        background: #FFFFFF !important;
+        box-shadow: none !important;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='18' cy='18' r='17' fill='%23EDEDED' stroke='%23BEBEBE' stroke-width='1'/><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23595656' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23595656' stroke-width='2' stroke-linecap='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
     }
 
     div[data-testid="stTextInput"] input:focus {
@@ -296,23 +362,18 @@ st.markdown(
         box-shadow: none !important;
     }
 
-    /* search button square, sits inside the right edge of the pill */
-    .lb-search-btn {
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
-        background: #ADADAD;
-        pointer-events: none;
+    /* kill browser autofill blue highlight */
+    div[data-testid="stTextInput"] input:-webkit-autofill,
+    div[data-testid="stTextInput"] input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+        -webkit-text-fill-color: #111827 !important;
     }
 
     /* RESULT CARD CONTAINER (mint) */
     .lb-result-panel {
         background: #F3FFFE;
         border-radius: 30px;
-        padding: 2.2rem 2.4rem;
+        padding: 2.2rem 2.4rem 1.3rem 2.4rem;
         margin-top: 1.8rem;
     }
 
@@ -344,10 +405,38 @@ st.markdown(
         font-size: 0.98rem;
         color: #111827;
     }
+
+    /* DOWNLOAD BUTTON */
+    div[data-testid="stDownloadButton"] {
+        display: flex;
+        justify-content: center;
+        margin-top: -0.6rem;
+    }
+
+    div[data-testid="stDownloadButton"] button {
+        background: #23749F !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 30px !important;
+        padding: 0.6rem 1.8rem !important;
+        font-family: 'Onest', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.92rem !important;
+        box-shadow: 0px 2px 6px rgba(35, 116, 159, 0.35) !important;
+    }
+
+    div[data-testid="stDownloadButton"] button:hover {
+        background: #1B5C7E !important;
+        color: #FFFFFF !important;
+    }
     </style>
 
     <div class="lb-top-bar">
-        <div class="lb-top-bar-mark"></div>
+        <div class="lb-top-bar-dots">
+            <span class="lb-dot-1"></span>
+            <span class="lb-dot-2"></span>
+            <span class="lb-dot-3"></span>
+        </div>
     </div>
     <div class="lb-bottom-bar"></div>
     """,
@@ -359,18 +448,35 @@ st.markdown(
 # HEADER
 # ============================================================
 
+def _logo_data_uri(path):
+    """Đọc file ảnh và trả về data URI base64 — cách duy nhất đáng tin cậy
+    để nhúng ảnh cục bộ vào HTML thô trong Streamlit (đường dẫn tương đối
+    kiểu <img src="file.png"> không được serve ra web)."""
+    import base64
+    try:
+        ext = os.path.splitext(path)[1].lstrip(".").lower() or "png"
+        mime = "jpeg" if ext == "jpg" else ext
+        with open(path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+        return f"data:image/{mime};base64,{encoded}"
+    except Exception:
+        return None
+
+
+logo_uri = _logo_data_uri(LOGO_FILE) if os.path.exists(LOGO_FILE) else None
+
 logo_html = (
-    f'<img src="{LOGO_FILE}" />'
-    if os.path.exists(LOGO_FILE)
-    else '<div style="width:160px;"></div>'
+    f'<img src="{logo_uri}" />'
+    if logo_uri
+    else '<div style="width:42px;height:42px;"></div>'
 )
 
 st.markdown(
     f"""
-    <div class="lb-hero">
+    <div class="lb-brand-row">
         {logo_html}
-        <div class="lb-hero-title">QUICK SEARCH</div>
     </div>
+    <div class="lb-hero-title">QUICK SEARCH</div>
     """,
     unsafe_allow_html=True,
 )
@@ -380,14 +486,11 @@ st.markdown(
 # SEARCH BOX
 # ============================================================
 
-search_wrap = st.container(key="lb_search_wrap")
-with search_wrap:
-    query = st.text_input(
-        "Tên thành phố",
-        placeholder="Nhập tên thành phố...",
-        label_visibility="collapsed",
-    )
-    st.markdown('<div class="lb-search-btn"></div>', unsafe_allow_html=True)
+query = st.text_input(
+    "Tên thành phố",
+    placeholder="Nhập tên thành phố...",
+    label_visibility="collapsed",
+)
 
 result = search_city(query) if query else None
 
@@ -428,4 +531,13 @@ elif result is not None:
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    docx_buffer = build_docx(result)
+
+    st.download_button(
+        label="⬇️ Tải xuống (.docx)",
+        data=docx_buffer,
+        file_name=f"{result['city'].replace(' ', '_')}_specs.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
