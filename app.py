@@ -329,7 +329,6 @@ st.markdown(
         background: transparent !important;
     }
 
-    /* ĐẶT KÍNH LÚP TRỰC TIẾP VÀO Ô INPUT BÊN TRÁI */
     div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: none !important;
@@ -342,6 +341,10 @@ st.markdown(
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: 18px center;
+    }
+
+    div[data-testid="stTextInput"] small {
+        display: none !important;
     }
 
     div[data-testid="stTextInput"]:focus-within {
@@ -383,6 +386,28 @@ st.markdown(
     .result-value {
         color: #111827;
         font-size: 1rem;
+    }
+
+    /* ĐỊNH DẠNG NÚT TẢI XUỐNG NẰM TRONG KHUNG */
+    div[data-testid="stDownloadButton"] {
+        margin-top: 1.5rem !important;
+    }
+    
+    div[data-testid="stDownloadButton"] button {
+        border-radius: 8px !important;
+        border: 1px solid #CBD5E1 !important;
+        background-color: #FFFFFF !important;
+        color: #133C55 !important;
+        font-weight: 600 !important;
+        font-family: 'Onest', sans-serif !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.2s ease-in-out;
+    }
+
+    div[data-testid="stDownloadButton"] button:hover {
+        background-color: #133C55 !important;
+        color: #FFFFFF !important;
+        border-color: #133C55 !important;
     }
     </style>
     """,
