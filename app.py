@@ -386,9 +386,7 @@ st.markdown(
 # ============================================================
 
 def _logo_data_uri(path):
-    """Đọc file ảnh và trả về data URI base64 — cách duy nhất đáng tin cậy
-    để nhúng ảnh cục bộ vào HTML thô trong Streamlit (đường dẫn tương đối
-    kiểu <img src="file.png"> không được serve ra web)."""
+    """Đọc file ảnh và trả về data URI base64."""
     import base64
     try:
         ext = os.path.splitext(path)[1].lstrip(".").lower() or "png"
