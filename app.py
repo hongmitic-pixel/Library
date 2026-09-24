@@ -324,7 +324,7 @@ st.markdown(
 
     /* HERO TITLE TO HƠN */
     .lb-hero-title {
-        font-family: 'Onest', sans-serif;
+        font-family: 'Onest', open- sans;
         font-weight: 800;
         font-size: 3.8rem;
         line-height: 1.2;
@@ -338,55 +338,49 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-    /* SEARCH BAR — BO TRÒN, VIỀN XANH ĐEN, CÓ ICON KÍNH LÚP */
+    /* SEARCH ROW — Khung bao bọc ngoài */
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
-    }
-
-    div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: 2px solid #123A54 !important;
-        height: 54px !important;
+        background: #FFFFFF !important;
+    }
+
+    /* Ẩn viền mặc định của khung cha Streamlit nếu có, để dùng viền chung ở trên */
+    div[data-testid="stTextInput"] > div {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    /* Ô nhập liệu bên trong */
+    div[data-testid="stTextInput"] input {
+        border-radius: 30px !important;
+        border: none !important;
+        height: 50px !important;
         padding: 0 52px 0 20px !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
-        background: #FFFFFF !important;
+        background: transparent !important;
         box-shadow: none !important;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='18' cy='18' r='16' fill='%23F3FFFE' stroke='%23123A54' stroke-width='1.5'/><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23123A54' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23123A54' stroke-width='2' stroke-linecap='round'/></svg>");
         background-repeat: no-repeat;
         background-position: right 12px center;
     }
 
-    div[data-testid="stTextInput"] input:focus {
+    /* Hiệu ứng khi bấm vào ô tìm kiếm */
+    div[data-testid="stTextInput"]:focus-within {
         border-color: #23749F !important;
         box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important;
     }
 
+    /* Xóa màu nền xanh tự động khi autofill */
     div[data-testid="stTextInput"] input:-webkit-autofill,
     div[data-testid="stTextInput"] input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
         -webkit-text-fill-color: #111827 !important;
     }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Đảm bảo phần render thanh top/bottom bar được gọi đúng cách trong st.markdown:
-st.markdown(
-    """
-    <div class="lb-top-bar">
-        <div class="lb-top-bar-dots">
-            <span class="lb-dot-1"></span>
-            <span class="lb-dot-2"></span>
-            <span class="lb-dot-3"></span>
-        </div>
-    </div>
-    <div class="lb-bottom-bar"></div>
-    """,
-    unsafe_allow_html=True
-)
 
 # ============================================================
 # HEADER
