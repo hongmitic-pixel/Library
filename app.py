@@ -502,6 +502,7 @@ elif result is not None:
         for label, value in fields
     )
 
+    # Hiển thị khung chứa thông tin kết quả
     st.markdown(
         f"""
         <div class="lb-result-panel">
@@ -512,10 +513,10 @@ elif result is not None:
         unsafe_allow_html=True,
     )
 
+    # Nút tải xuống (.docx) sẽ nằm ngay phía dưới nội dung trong cùng một khối giao diện
     docx_buffer = build_docx(result)
-
     st.download_button(
-        label="Tải xuống (.docx)",
+        label="📥 Download",
         data=docx_buffer,
         file_name=f"{result['city'].replace(' ', '_')}_specs.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
