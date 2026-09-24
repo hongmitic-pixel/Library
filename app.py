@@ -313,37 +313,50 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-    /* ĐỊNH DẠNG KHUNG THANH TÌM KIẾM */
+/* KHUNG BAO BỌC NGOÀI THANH TÌM KIẾM */
     div[data-testid="stTextInput"] {
         max-width: 420px;
         margin: 0 auto;
         border-radius: 30px !important;
         border: 2px solid #123A54 !important;
         background: #FFFFFF !important;
-        overflow: hidden !important;
+        padding: 2px 6px !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
     }
 
+    /* XÓA BỎ HOÀN TOÀN CÁC KHUNG CON GÂY ĐÈ VIỀN ĐỎ */
     div[data-testid="stTextInput"] > div {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+
+    div[data-testid="stTextInput"] > div > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
     }
 
+    /* Ô NHẬP LIỆU BÊN TRONG & KÍNH LÚP */
     div[data-testid="stTextInput"] input {
         border-radius: 30px !important;
         border: none !important;
-        height: 50px !important;
-        padding: 0 20px 0 50px !important;
+        height: 44px !important;
+        padding: 0 20px 0 44px !important;
         font-size: 1rem !important;
         font-family: 'Onest', sans-serif !important;
         background-color: transparent !important;
         box-shadow: none !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23123A54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: 18px center;
+        background-position: 14px center;
     }
 
-    div[data-testid="stTextInput"] small {
+    /* ẨN TRIỆT ĐỂ DÒNG CHỮ "PRESS ENTER TO APPLY" */
+    div[data-testid="stTextInput"] div[data-baseweb="input"] + div,
+    div[data-testid="stTextInput"] small,
+    div[data-testid="stTextInput"] span[class*="instructions"] {
         display: none !important;
     }
 
