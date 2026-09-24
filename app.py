@@ -282,14 +282,14 @@ st.markdown(
     }
 
     .lb-top-bar-dots span {
-        width: 11px;
-        height: 11px;
+        width: 15px;
+        height: 15px;
         border-radius: 50%;
         display: inline-block;
     }
 
     .lb-dot-1 { background: #FFFFFF; }
-    .lb-dot-2 { background: #123A54; }
+    .lb-dot-2 { background: #9AFFFD; }
     .lb-dot-3 { background: #F2C94C; }
 
     .lb-bottom-bar {
@@ -302,21 +302,25 @@ st.markdown(
 
     /* REMOVE DEFAULT STREAMLIT SPACING */
     .block-container {
-        padding: 100px 3rem 80px 3rem !important;
+        padding: 140px 3rem 80px 3rem !important;
         max-width: 640px !important;
         margin: 0 auto !important;
     }
 
     /* BRAND ROW (logo + wordmark, left aligned) */
     .lb-brand-row {
+        position: fixed;
+        top: 85px;  /* Đặt vị trí nằm ngay dưới thanh top bar (thanh top bar cao 68px) */
+        left: 3rem; /* Căn lề trái tương đương với lề của trang */
+        z-index: 999;
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        margin-bottom: 1.6rem;
+        margin-bottom: 0rem;
     }
 
     .lb-brand-row img {
-        height: 42px;
+        height: 70px;
         width: auto;
         object-fit: contain;
     }
@@ -325,7 +329,7 @@ st.markdown(
     .lb-hero-title {
         font-family: 'Onest', sans-serif;
         font-weight: 800;
-        font-size: 2.5rem;
+        font-size: 4rem;
         line-height: 1.2;
         text-align: center;
         margin: 0 0 1.6rem 0;
@@ -337,32 +341,33 @@ st.markdown(
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
 
-    /* SEARCH ROW — compact, centered */
+/* SEARCH ROW — bo tròn, viền xanh đen, có icon kính lúp */
     div[data-testid="stTextInput"] {
         max-width: 380px;
         margin: 0 auto;
     }
 
     div[data-testid="stTextInput"] input {
-        border-radius: 18px !important;
-        border: 1.5px solid #BEBEBE !important;
+        border-radius: 30px !important; /* Bo tròn góc nhiều hơn (kiểu viên thuốc) */
+        border: 2px solid #123A54 !important; /* Viền màu xanh đen */
         height: 54px !important;
         padding: 0 52px 0 20px !important;
         font-size: 0.95rem !important;
         font-family: 'Onest', sans-serif !important;
         background: #FFFFFF !important;
         box-shadow: none !important;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='18' cy='18' r='17' fill='%23EDEDED' stroke='%23BEBEBE' stroke-width='1'/><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23595656' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23595656' stroke-width='2' stroke-linecap='round'/></svg>");
+        /* Icon kính lúp ở bên phải */
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><circle cx='18' cy='18' r='16' fill='%23F3FFFE' stroke='%23123A54' stroke-width='1.5'/><circle cx='16' cy='16' r='5.5' fill='none' stroke='%23123A54' stroke-width='2'/><line x1='20' y1='20' x2='24.5' y2='24.5' stroke='%23123A54' stroke-width='2' stroke-linecap='round'/></svg>");
         background-repeat: no-repeat;
-        background-position: right 8px center;
+        background-position: right 10px center;
     }
 
     div[data-testid="stTextInput"] input:focus {
         border-color: #23749F !important;
-        box-shadow: none !important;
+        box-shadow: 0 0 8px rgba(35, 116, 159, 0.25) !important; /* Hiệu ứng phát sáng nhẹ khi bấm vào */
     }
 
-    /* kill browser autofill blue highlight */
+    /* Xóa màu nền xanh tự động của trình duyệt khi autofill */
     div[data-testid="stTextInput"] input:-webkit-autofill,
     div[data-testid="stTextInput"] input:-webkit-autofill:focus {
         -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
