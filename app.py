@@ -207,7 +207,24 @@ def search_city(search_text):
 
 st.markdown(
     """
-<style>
+    <style>
+    /* GLOBAL */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+        background: #FFFFFF !important;
+    }
+    [data-testid="stHeader"], header, footer, [data-testid="stToolbar"], #MainMenu {
+        display: none !important;
+    }
+    /* REMOVE DEFAULT STREAMLIT SPACING */
+    .block-container {
+        padding: 0 !important;
+        max-width: none !important;
+    }
+    </style>
+    """,
+    unsafe_html=True
+)
+
 
 /* ==========================================================
    GLOBAL
