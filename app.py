@@ -337,7 +337,6 @@ st.markdown(
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
         text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.12);
     }
-
     /* SEARCH ROW — Khung bao bọc ngoài */
     div[data-testid="stTextInput"] {
         max-width: 420px;
